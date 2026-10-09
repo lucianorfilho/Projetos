@@ -1,0 +1,175 @@
+====================================================================
+                    CHECKLIST DE DEPLOY
+====================================================================
+
+Liberação Automática de Espaço - DBVault
+Data: 08/07/2026
+Tempo Estimado: 10 minutos
+
+====================================================================
+                         PRÉ-DEPLOY
+====================================================================
+
+[ ] 1. Backup da aplicação
+       ssh root@23.106.45.221
+       cd /home/guardsaas/backend
+       tar -czf backup_$(date +%Y%m%d).tar.gz src/
+
+[ ] 2. Verificar espaço em disco
+       df -h
+       (Deve ter pelo menos 100MB livres)
+
+[ ] 3. Verificar banco de dados
+       mysql -u root -p dbguard -e "SELECT COUNT(*) FROM dbguard_invoices;"
+       (Deve retornar um número)
+
+====================================================================
+                        DEPLOY (5 MIN)
+====================================================================
+
+[ ] 4. Copiar arquivo scheduler.js
+       Adicionar scheduler de sincronização (145 linhas)
+       Arquivo: src/scheduler.js
+       Ver: DEPLOY_RAPIDO.md seção "Arquivo 1"
+
+[ ] 5. Criar arquivo admin.js (NOVO)
+       Criar arquivo: src/routes/admin.js
+       Cole todo o código (240 linhas)
+       Ver: DEPLOY_RAPIDO.md seção "Arquivo 2"
+
+[ ] 6. Atualizar index.js
+       Adicionar linha: app.use('/api/admin', require('./routes/admin'));
+       Ver: DEPLOY_RAPIDO.md seção "Arquivo 3"
+
+[ ] 7. Instalar dependências (se necessário)
+       npm install
+       (Normalmente não é necessário)
+
+[ ] 8. Reiniciar aplicação
+       pm2 restart all
+       ou
+       systemctl restart guardsaas
+
+====================================================================
+                     VALIDAÇÃO (2 MIN)
+====================================================================
+
+[ ] 9. Verificar se aplicação iniciou
+       pm2 logs guardsaas | head -50
+       Procure por: "⏰ Scheduler iniciado"
+
+[ ] 10. Testar endpoint admin - Listar pendentes
+        curl http://localhost:4000/api/admin/pending-payments \
+          -H "Authorization: Bearer {seu_token_admin}" | jq
+
+[ ] 11. Verificar webhook status
+        curl http://localhost:4000/api/admin/webhook-status \
+          -H "Authorization: Bearer {seu_token_admin}" | jq
+
+[ ] 12. Verificar logs do scheduler
+        pm2 logs guardsaas | grep "💳"
+        Deve ver algo como: "💳 Sincronizando pagamentos com Asaas..."
+
+====================================================================
+                   RECUPERAR CASE "CUPPER STORE"
+====================================================================
+
+[ ] 13. Encontrar fatura pendente
+        mysql -u root -p dbguard -e "
+        SELECT i.id as invoice_id, i.plan_name
+        FROM dbguard_invoices i
+        JOIN dbguard_users u ON u.id = i.user_id
+        WHERE u.name LIKE '%cupper%' AND i.status = 'awaiting_payment' LIMIT 1;"
+
+[ ] 14. Liberar espaço manualmente
+        curl -X POST http://localhost:4000/api/admin/release-payment/{invoice_id} \
+          -H "Authorization: Bearer {seu_token_admin}"
+        (Substitua {invoice_id} pelo ID encontrado acima)
+
+[ ] 15. Verificar liberação no banco
+        mysql -u root -p dbguard -e "
+        SELECT id, status, paid_at FROM dbguard_invoices WHERE id = {invoice_id};"
+        Esperado: status = 'paid', paid_at = data de hoje
+
+====================================================================
+                      TESTES FINAIS
+====================================================================
+
+[ ] 16. Testar com fatura de teste
+        Criar fatura de teste com status 'awaiting_payment'
+        Simular pagamento no Asaas
+        Aguardar até 15 minutos
+        Verificar se foi liberado automaticamente
+
+[ ] 17. Monitorar logs por 15 minutos
+        tail -f /var/log/guardsaas/app.log | grep -E "Sincronizando|Liberando|✅"
+        Devem aparecer mensagens a cada 15 minutos
+
+[ ] 18. Verificar alertas criados
+        mysql -u root -p dbguard -e "
+        SELECT * FROM dbguard_alerts WHERE type = 'payment_confirmed'
+        ORDER BY created_at DESC LIMIT 5;"
+
+====================================================================
+                      PÓS-DEPLOY
+====================================================================
+
+[ ] 19. Fazer commit (opcional)
+        cd /home/guardsaas
+        git add -A
+        git commit -m "Implementar scheduler e endpoints admin para pagamentos"
+        git push origin main
+
+[ ] 20. Documenta em LOG
+        echo "Deploy: Scheduler de Pagamentos - $(date)" >> deploy.log
+
+[ ] 21. Notificar usuários
+        "Sistema de liberação de espaço agora é 100% automático"
+        "Máximo 15 minutos para processar pagamentos"
+
+====================================================================
+                      TROUBLESHOOTING
+====================================================================
+
+ERRO: "Cannot find module"
+→ Solução: npm install && pm2 restart all
+
+ERRO: "Apenas admins podem acessar"
+→ Solução: Verificar token é de user com role='admin'
+
+ERRO: Scheduler não sincroniza
+→ Solução: Verificar logs (pm2 logs guardsaas)
+→ Verificar se aplicação rodando (pm2 status)
+→ Reiniciar aplicação (pm2 restart all)
+
+ERRO: Endpoint retorna 404
+→ Solução: Verificar se index.js tem a linha de admin
+→ Verificar se arquivo admin.js existe
+→ Reiniciar aplicação
+
+====================================================================
+                      VERIFICAÇÃO FINAL
+====================================================================
+
+[ ] Scheduler ativo?                    (Ver logs)
+[ ] Endpoints admin funcionam?          (Testar GET/POST)
+[ ] Cliente "cupper store" tem acesso?  (Verificar BD)
+[ ] Pagamentos são sincronizados?       (Monitorar 15 min)
+[ ] Sem erros no log?                   (Verificar logs)
+[ ] Auditoria sendo registrada?         (Ver dbguard_audit_logs)
+
+====================================================================
+
+CHECKLIST COMPLETO? → Sistema Está Pronto! ✅
+
+Próximos passos:
+- Monitorar por 7 dias
+- Relatar sucesso
+- Preparar dashboard admin (opcional)
+
+====================================================================
+Data de Conclusão: _______________
+Responsável: _______________
+Notas: _______________
+
+====================================================================
