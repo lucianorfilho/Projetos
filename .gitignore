@@ -1,0 +1,41 @@
+# Segredos e credenciais - NUNCA versionar
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+!*.pub.key
+oci_key*.pem
+**/config/oci_key*
+*credential*.xml
+*_credentials.txt
+dbview_credentials.txt
+save_vpn_credential.ps1
+connect_vpn.ps1
+
+# Dependências / build (reinstaláveis)
+node_modules/
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+dist/
+build/
+.pytest_cache/
+*.egg-info/
+
+# Banco de dados local / backups grandes
+*.sqlite3
+*.db
+*.sql.gz
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
