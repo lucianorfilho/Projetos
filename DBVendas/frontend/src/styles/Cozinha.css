@@ -1,0 +1,284 @@
+.cozinha-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.cozinha-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.cozinha-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.logout-btn:hover {
+  background: white;
+  color: #667eea;
+}
+
+.cozinha-abas {
+  display: flex;
+  background: white;
+  padding: 0 30px;
+  gap: 0;
+  border-bottom: 1px solid #eee;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.cozinha-abas button {
+  background: none;
+  border: none;
+  color: #999;
+  padding: 15px 25px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s;
+}
+
+.cozinha-abas button:hover {
+  color: #667eea;
+}
+
+.cozinha-abas button.ativo {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.cozinha-content {
+  padding: 30px;
+  max-width: 100%;
+}
+
+.kds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.venda-card {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s;
+}
+
+.venda-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #667eea;
+}
+
+.venda-header {
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.venda-header h3 {
+  margin: 0 0 6px 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.venda-header .horario {
+  margin: 3px 0 0 0;
+  color: #999;
+  font-size: 11px;
+}
+
+.venda-header .cliente-nome {
+  margin: 8px 0 0 0;
+  color: #667eea;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 6px;
+  background: #f0f7ff;
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
+}
+
+.itens-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item {
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 6px;
+  border-left: 4px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.item.pendente {
+  border-left-color: #ff9800;
+  background: #fff8f0;
+}
+
+.item.pendente:hover {
+  background: #ffe8d0;
+}
+
+.item.pronto {
+  border-left-color: #4caf50;
+  background: #f1f8f4;
+  opacity: 0.7;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-info h4 {
+  margin: 0 0 4px 0;
+  color: #333;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.item-info .qtd {
+  margin: 0 0 3px 0;
+  color: #666;
+  font-size: 12px;
+}
+
+.item-info .status {
+  margin: 0;
+  color: #ff9800;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.item.pronto .status {
+  color: #4caf50;
+}
+
+.btn-pronto {
+  background: #ff9800;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 13px;
+  transition: all 0.3s;
+  margin-left: 15px;
+  white-space: nowrap;
+}
+
+.btn-pronto:hover {
+  background: #f57c00;
+  transform: translateY(-2px);
+}
+
+.btn-pronto:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vazio {
+  text-align: center;
+  color: #999;
+  padding: 60px 20px;
+  font-size: 20px;
+}
+
+.paginacao {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+.paginacao button {
+  background: white;
+  border: 2px solid #ddd;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #666;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.paginacao button:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background: #f0f7ff;
+}
+
+.paginacao button.ativo {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+@media (max-width: 768px) {
+  .kds-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cozinha-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .cozinha-header h1 {
+    font-size: 22px;
+  }
+
+  .item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .btn-pronto {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .venda-card {
+    padding: 15px;
+  }
+
+  .venda-header .cliente-nome {
+    font-size: 16px;
+    padding: 8px;
+  }
+
+  .cozinha-abas button {
+    padding: 12px 15px;
+    font-size: 13px;
+  }
+}

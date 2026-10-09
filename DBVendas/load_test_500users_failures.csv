@@ -1,0 +1,16 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,/produtos,"ConnectionResetError(10054, 'Foi forçado o cancelamento de uma conexão existente pelo host remoto', None, 10054, None)",2,2026-08-31T18:29:03Z,2026-08-31T18:29:04Z
+POST,/pre-vendas,HTTPError('401 Client Error: Unauthorized for url: /pre-vendas'),998,2026-08-31T18:28:09Z,2026-08-31T18:28:59Z
+GET,/pre-vendas/{id},"SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)'))",1,2026-08-31T18:29:02Z,2026-08-31T18:29:02Z
+POST,/pre-vendas,RemoteDisconnected('Remote end closed connection without response'),3,2026-08-31T18:29:01Z,2026-08-31T18:29:01Z
+GET,/evento/config,HTTPError('500 Server Error: Internal Server Error for url: /evento/config'),1,2026-08-31T18:29:05Z,2026-08-31T18:29:05Z
+POST,/pre-vendas,HTTPError('500 Server Error: Internal Server Error for url: /pre-vendas'),1,2026-08-31T18:29:05Z,2026-08-31T18:29:05Z
+GET,/evento/config,RemoteDisconnected('Remote end closed connection without response'),2,2026-08-31T18:29:01Z,2026-08-31T18:29:01Z
+GET,/pre-vendas/{id},HTTPError('500 Server Error: Internal Server Error for url: /pre-vendas/{id}'),2,2026-08-31T18:29:03Z,2026-08-31T18:29:04Z
+GET,/evento/config,"SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)'))",1,2026-08-31T18:29:03Z,2026-08-31T18:29:03Z
+POST,/pre-vendas,"SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)'))",2,2026-08-31T18:29:02Z,2026-08-31T18:29:05Z
+GET,/pre-vendas/{id},HTTPError('404 Client Error: Not Found for url: /pre-vendas/{id}'),333,2026-08-31T18:28:08Z,2026-08-31T18:28:59Z
+GET,/produtos,HTTPError('500 Server Error: Internal Server Error for url: /produtos'),3,2026-08-31T18:29:02Z,2026-08-31T18:29:04Z
+POST,/pre-vendas,"ConnectionResetError(10054, 'Foi forçado o cancelamento de uma conexão existente pelo host remoto', None, 10054, None)",2,2026-08-31T18:29:02Z,2026-08-31T18:29:04Z
+GET,/produtos,"SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)'))",1,2026-08-31T18:29:05Z,2026-08-31T18:29:05Z
+GET,/produtos,RemoteDisconnected('Remote end closed connection without response'),3,2026-08-31T18:29:01Z,2026-08-31T18:29:02Z

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code - Cardápio DBVendas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .qr-container {
+            background: #f5f5f5;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #qrcode {
+            width: 300px;
+            height: 300px;
+        }
+
+        .url-display {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            word-break: break-all;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-print {
+            background: #667eea;
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-print:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-download {
+            background: #764ba2;
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-download:hover {
+            background: #683a8a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+        }
+
+        .instructions {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+            text-align: left;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .instructions h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                max-width: 100%;
+                padding: 20px;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .button-group,
+            .instructions {
+                display: none;
+            }
+
+            .qr-container {
+                background: white;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Acesse nosso Cardápio</h1>
+        <p class="subtitle">Escaneie o QR code com seu celular</p>
+
+        <div class="qr-container">
+            <div id="qrcode"></div>
+        </div>
+
+        <div class="url-display">
+            https://cardapio.dbvendas.dbtechsolutions.com.br
+        </div>
+
+        <div class="button-group">
+            <button class="btn-print" onclick="window.print()">🖨️ Imprimir</button>
+            <button class="btn-download" onclick="downloadQR()">⬇️ Baixar</button>
+        </div>
+
+        <div class="instructions">
+            <h3>Como usar:</h3>
+            <ol>
+                <li>Clique em "Imprimir" para imprimir este QR code</li>
+                <li>Fixe a impressão em um local visível do seu estabelecimento</li>
+                <li>Os clientes podem escanear com a câmera do celular</li>
+                <li>Ou use "Baixar" para salvar a imagem do QR code</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        // Gerar QR code
+        new QRCode(document.getElementById("qrcode"), {
+            text: "https://cardapio.dbvendas.dbtechsolutions.com.br",
+            width: 300,
+            height: 300,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        // Função para baixar QR code
+        function downloadQR() {
+            const canvas = document.querySelector("#qrcode canvas");
+            const link = document.createElement("a");
+            link.href = canvas.toDataURL("image/png");
+            link.download = "qrcode-cardapio.png";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

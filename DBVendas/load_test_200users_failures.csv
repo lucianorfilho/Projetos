@@ -1,0 +1,3 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,/pre-vendas,HTTPError('401 Client Error: Unauthorized for url: /pre-vendas'),848,2026-08-31T18:26:59Z,2026-08-31T18:27:57Z
+GET,/pre-vendas/{id},HTTPError('404 Client Error: Not Found for url: /pre-vendas/{id}'),274,2026-08-31T18:27:00Z,2026-08-31T18:27:57Z
