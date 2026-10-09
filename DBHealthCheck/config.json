@@ -1,0 +1,20 @@
+{
+  "oracle": {
+    "host": "192.168.1.100",
+    "port": 1521,
+    "username": "seu_usuario",
+    "password": "sua_senha",
+    "instance": "ORCL",
+    "service_name": ""
+  },
+  "email": {
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "email": "seu_email@gmail.com",
+    "app_password": "sua_senha_de_app"
+  },
+  "schedule": {
+    "enabled": true,
+    "time": "05:50"
+  }
+}

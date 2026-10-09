@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EURUSD M5 - DBTrader</title>
+  <script src="https://unpkg.com/lightweight-charts@4/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #252525;
+      border-radius: 8px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+      color: #fff;
+    }
+
+    .subtitle {
+      color: #aaa;
+      font-size: 12px;
+    }
+
+    .chart-controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #667eea;
+      color: white;
+    }
+
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+
+    .chart-container {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    #chart {
+      width: 100%;
+      height: 600px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .info-box {
+      background: #252525;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .info-box h3 {
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .info-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .status-active {
+      color: #00c853;
+    }
+
+    .status-inactive {
+      color: #ff6f00;
+    }
+
+    .trade-history {
+      background: #252525;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 15px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .trade-item {
+      padding: 10px;
+      border-bottom: 1px solid #333;
+      font-size: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .trade-item:last-child {
+      border-bottom: none;
+    }
+
+    .trade-buy {
+      color: #4caf50;
+    }
+
+    .trade-sell {
+      color: #ff9800;
+    }
+
+    .trade-win {
+      color: #00c853;
+    }
+
+    .trade-loss {
+      color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📊 EURUSD M5</h1>
+      <p class="subtitle">Dados Reais via MetaTrader5 (Avalon) | Horário Local: Brasília (GMT-3)</p>
+    </header>
+
+    <div class="chart-controls">
+      <button id="btnUpdate">🔄 Atualizar</button>
+      <button id="btnAutoTrade">🤖 Auto-Trading ON</button>
+      <button id="btnClearTrades">🗑️ Limpar Histórico</button>
+    </div>
+
+    <div class="chart-container">
+      <div id="chart"></div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-box">
+        <h3>Status do Bot</h3>
+        <div id="botStatus" class="info-value status-inactive">Parado</div>
+      </div>
+      <div class="info-box">
+        <h3>Último Preço</h3>
+        <div id="lastPrice" class="info-value">--</div>
+      </div>
+      <div class="info-box">
+        <h3>Total de Trades</h3>
+        <div id="totalTrades" class="info-value" style="color: #ffb300;">0</div>
+      </div>
+      <div class="info-box">
+        <h3>Ganhos / Perdas</h3>
+        <div id="tradeResult" class="info-value">R$ 0.00</div>
+      </div>
+      <div class="info-box">
+        <h3>⏭️ Próximo Sinal</h3>
+        <div id="nextSignal" class="info-value" style="font-size: 16px; color: #ffb300;">Aguardando...</div>
+        <div id="nextSignalConfidence" style="font-size: 12px; color: #aaa; margin-top: 8px;">--</div>
+      </div>
+    </div>
+
+    <div class="trade-history">
+      <h3 style="margin-bottom: 15px;">📊 Fila de Sinais</h3>
+      <div id="signalQueue" style="font-size: 11px;">
+        <p style="color: #666; text-align: center;">Aguardando sinais...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="technical-indicators.js"></script>
+  <script>
+    let chart = null;
+    let candlestickSeries = null;
+    let currentCandles = [];
+    let autoTradingActive = false;
+    let autoTradingInterval = null;
+    let tradeHistory = [];
+
+    document.getElementById('btnUpdate').addEventListener('click', loadChart);
+    document.getElementById('btnAutoTrade').addEventListener('click', toggleAutoTrading);
+    document.getElementById('btnClearTrades').addEventListener('click', clearTradeHistory);
+
+    function initChart() {
+      const container = document.getElementById('chart');
+      chart = LightweightCharts.createChart(container, {
+        layout: {
+          background: { color: '#1e1e1e' },
+          textColor: '#d1d5db',
+        },
+        width: container.clientWidth,
+        height: 600,
+        timeScale: {
+          timeVisible: true,
+          secondsVisible: false,
+        },
+        grid: {
+          hLines: { color: '#333' },
+          vLines: { color: '#333' },
+        },
+      });
+
+      candlestickSeries = chart.addCandlestickSeries({
+        upColor: '#00c853',
+        downColor: '#d32f2f',
+        borderUpColor: '#00c853',
+        borderDownColor: '#d32f2f',
+        wickUpColor: '#00c853',
+        wickDownColor: '#d32f2f',
+      });
+
+      chart.timeScale().fitContent();
+      window.addEventListener('resize', () => {
+        if (chart) {
+          chart.applyOptions({ width: container.clientWidth });
+        }
+      });
+    }
+
+    async function loadChart() {
+      try {
+        const response = await fetch('/api/chart/candles?symbol=EURUSD&limit=100&type=avalon&timeframe=5m');
+        const data = await response.json();
+
+        if (!data.candles || data.candles.length === 0) {
+          console.error('Sem dados');
+          return;
+        }
+
+        currentCandles = data.candles;
+
+        if (!chart) {
+          initChart();
+        }
+
+        const chartData = currentCandles.map(candle => ({
+          time: Math.floor(candle.time - 6 * 3600),
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
+        }));
+
+        candlestickSeries.setData(chartData);
+        chart.timeScale().fitContent();
+
+        const lastCandle = currentCandles[currentCandles.length - 1];
+        document.getElementById('lastPrice').textContent = lastCandle.close.toFixed(5);
+
+        console.log('✅ Gráfico carregado:', chartData.length, 'velas');
+      } catch (err) {
+        console.error('Erro:', err.message);
+      }
+    }
+
+    async function toggleAutoTrading() {
+      autoTradingActive = !autoTradingActive;
+      const btn = document.getElementById('btnAutoTrade');
+
+      if (autoTradingActive) {
+        btn.style.background = '#ff6f00';
+        btn.textContent = '🤖 Auto-Trading OFF';
+        document.getElementById('botStatus').textContent = 'Ativo';
+        document.getElementById('botStatus').className = 'info-value status-active';
+        console.log('✅ Auto-Trading ATIVO');
+
+        try {
+          const response = await fetch('/api/bot/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pair: 'EURUSD', tradeAmount: 10 })
+          });
+          const data = await response.json();
+          console.log('🤖 Bot iniciado:', data);
+        } catch (err) {
+          console.error('Erro ao iniciar bot:', err.message);
+        }
+
+        loadChart().then(() => {
+          autoTradingInterval = setInterval(() => {
+            loadChart();
+            loadTradeHistory();
+          }, 5000);
+        });
+      } else {
+        btn.style.background = '#667eea';
+        btn.textContent = '🤖 Auto-Trading ON';
+        document.getElementById('botStatus').textContent = 'Parado';
+        document.getElementById('botStatus').className = 'info-value status-inactive';
+
+        try {
+          const response = await fetch('/api/bot/stop', { method: 'POST' });
+          const data = await response.json();
+          console.log('🛑 Bot parado:', data);
+        } catch (err) {
+          console.error('Erro ao parar bot:', err.message);
+        }
+
+        if (autoTradingInterval) {
+          clearInterval(autoTradingInterval);
+          autoTradingInterval = null;
+        }
+        console.log('❌ Auto-Trading PARADO');
+      }
+    }
+
+    async function loadTradeHistory() {
+      // Função mantida para compatibilidade
+      // Sinais agora vêm de checkBotStatus -> updateSignalQueue
+    }
+
+    function clearTradeHistory() {
+      if (confirm('Limpar histórico?')) {
+        tradeHistory = [];
+        updateTradeDisplay();
+      }
+    }
+
+    function updateTradeDisplay() {
+      const totalTrades = tradeHistory.length;
+      const totalProfit = tradeHistory.reduce((sum, t) => sum + (t.pips / 100), 0);
+
+      document.getElementById('totalTrades').textContent = totalTrades;
+      document.getElementById('tradeResult').textContent = `R$ ${totalProfit.toFixed(2)}`;
+
+      let html = '';
+      tradeHistory.slice(0, 20).forEach(trade => {
+        html += `
+          <div class="trade-item">
+            <div class="trade-${trade.type.toLowerCase()}">${trade.type} ${trade.price}</div>
+            <div>${new Date(trade.time * 1000).toLocaleTimeString('pt-BR')}</div>
+            <div class="${trade.pips > 0 ? 'trade-win' : 'trade-loss'}">${trade.pips} pips</div>
+          </div>
+        `;
+      });
+
+      document.getElementById('tradeList').innerHTML = html || '<p style="color: #666; text-align: center;">Nenhum trade ainda...</p>';
+    }
+
+    async function checkBotStatus() {
+      try {
+        const response = await fetch('/api/bot/status');
+        const data = await response.json();
+
+        if (data.bot.status === 'ativo') {
+          autoTradingActive = true;
+          const btn = document.getElementById('btnAutoTrade');
+          btn.style.background = '#ff6f00';
+          btn.textContent = '🤖 Auto-Trading OFF';
+          document.getElementById('botStatus').textContent = 'Ativo';
+          document.getElementById('botStatus').className = 'info-value status-active';
+
+          // Atualizar stats
+          document.getElementById('totalTrades').textContent = data.bot.tradeCount || 0;
+          const profit = parseFloat(data.bot.profit || 0);
+          document.getElementById('tradeResult').textContent = `R$ ${profit.toFixed(2)}`;
+          document.getElementById('tradeResult').style.color = profit >= 0 ? '#00c853' : '#d32f2f';
+
+          // Mostrar próximo sinal (EM ESPERA)
+          const waitingSignal = data.signalQueue?.find(s => s.status === 'EM ESPERA');
+          if (waitingSignal) {
+            const signalColor = waitingSignal.signal.includes('COMPRA') ? '#00c853' : '#d32f2f';
+            document.getElementById('nextSignal').textContent = waitingSignal.signal;
+            document.getElementById('nextSignal').style.color = signalColor;
+            document.getElementById('nextSignalConfidence').textContent = `Execução: ${waitingSignal.executionTime} | ${waitingSignal.confidence}%`;
+          } else {
+            document.getElementById('nextSignal').textContent = 'Aguardando...';
+            document.getElementById('nextSignal').style.color = '#ffb300';
+            document.getElementById('nextSignalConfidence').textContent = '--';
+          }
+
+          // Atualizar fila de sinais (exibe status EM ESPERA → EM EXECUÇÃO → FINALIZADO)
+          updateSignalQueue(data.signalQueue || []);
+        }
+      } catch (err) {
+        console.log('Bot status check: parado ou erro');
+      }
+    }
+
+    async function loadTradeHistoryFromAPI() {
+      try {
+        const response = await fetch('/api/bot/history?limit=50');
+        const data = await response.json();
+
+        if (!data.trades || data.trades.length === 0) {
+          document.getElementById('signalQueue').innerHTML = '<p style="color: #666; text-align: center;">Nenhum trade ainda...</p>';
+          return;
+        }
+
+        let html = '';
+        data.trades.slice(0, 20).forEach(trade => {
+          const type = trade.action === 'BUY' ? 'COMPRA' : 'VENDA';
+          const color = trade.action === 'BUY' ? '#00c853' : '#d32f2f';
+          const time = new Date(trade.entry_time).toLocaleTimeString('pt-BR');
+          const pips = Math.round((trade.exit_price - trade.entry_price) * 10000);
+          const resultColor = pips > 0 ? '#00c853' : '#d32f2f';
+
+          html += `
+            <div class="trade-item" style="border-left: 3px solid ${color}; padding-left: 12px;">
+              <div style="color: ${color}; font-weight: 600;">✅ ${type}</div>
+              <div style="color: #aaa;">${time}</div>
+              <div style="color: ${resultColor}; font-weight: 600;">${pips > 0 ? '✅' : '❌'} ${pips} pips</div>
+            </div>
+          `;
+        });
+
+        document.getElementById('signalQueue').innerHTML = html;
+      } catch (err) {
+        console.error('Erro ao carregar histórico:', err.message);
+      }
+    }
+
+    function updateSignalQueue(queue) {
+      // Exibir fila de sinais com status em tempo real
+      if (!queue || queue.length === 0) {
+        document.getElementById('signalQueue').innerHTML = '<p style="color: #666; text-align: center;">⏳ Aguardando próxima análise...</p>';
+        return;
+      }
+
+      let html = '';
+      queue.forEach(signal => {
+        const signalType = signal.signal.includes('COMPRA') ? 'COMPRA' : 'VENDA';
+        const signalColor = signal.signal.includes('COMPRA') ? '#00c853' : '#d32f2f';
+
+        let statusIcon = '';
+        let statusColor = '#aaa';
+        let statusText = '';
+        let statusBg = 'rgba(255, 255, 255, 0.05)';
+
+        if (signal.status === 'EM ESPERA') {
+          statusIcon = '⏳';
+          statusColor = '#ffb300';
+          statusText = 'EM ESPERA';
+          statusBg = 'rgba(255, 179, 0, 0.1)';
+        } else if (signal.status === 'EM EXECUÇÃO') {
+          statusIcon = '⚡';
+          statusColor = '#ff9800';
+          statusText = 'EM EXECUÇÃO';
+          statusBg = 'rgba(255, 152, 0, 0.1)';
+        } else if (signal.status === 'FINALIZADO') {
+          if (signal.pips > 0) {
+            statusIcon = '✅';
+            statusColor = '#00c853';
+            statusText = `✅ GAIN ${Math.abs(signal.pips).toFixed(0)} pips`;
+            statusBg = 'rgba(0, 200, 83, 0.1)';
+          } else {
+            statusIcon = '❌';
+            statusColor = '#d32f2f';
+            statusText = `❌ LOSS ${Math.abs(signal.pips).toFixed(0)} pips`;
+            statusBg = 'rgba(211, 47, 47, 0.1)';
+          }
+        }
+
+        html += `
+          <div class="trade-item" style="border-left: 4px solid ${signalColor}; padding-left: 12px; background: ${statusBg}; margin-bottom: 8px; border-radius: 4px;">
+            <div style="color: ${signalColor}; font-weight: 700; font-size: 13px;">${statusIcon} ${signalType}</div>
+            <div style="color: #aaa; font-size: 11px; margin-top: 4px;">⏰ ${signal.executionTime}</div>
+            <div style="color: ${statusColor}; font-weight: 700; font-size: 12px; margin-top: 4px;">${statusText}</div>
+          </div>
+        `;
+      });
+
+      document.getElementById('signalQueue').innerHTML = html;
+    }
+
+    loadChart();
+    checkBotStatus();
+
+    // Atualizar status a cada 2 segundos
+    setInterval(checkBotStatus, 2000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DBTrader - Motor de Análise</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 900px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 32px;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .form-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    select, input {
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-section.full {
+      grid-column: 1 / -1;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      grid-column: 1 / -1;
+    }
+
+    button {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-analyze {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-analyze:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-analyze:active {
+      transform: translateY(0);
+    }
+
+    .btn-analyze:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-analyze-deep {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+
+    .btn-analyze-deep:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(17, 153, 142, 0.3);
+    }
+
+    .btn-analyze-deep:active {
+      transform: translateY(0);
+    }
+
+    .btn-analyze-deep:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .analysis-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      color: #999;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+
+    .tab-btn.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.show {
+      display: block;
+    }
+
+    .analysis-section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border-left: 4px solid #667eea;
+    }
+
+    .analysis-section.macro {
+      border-left-color: #11998e;
+    }
+
+    .analysis-section.micro {
+      border-left-color: #ff6b6b;
+    }
+
+    .section-title {
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+    }
+
+    .metric-row:last-child {
+      border-bottom: none;
+    }
+
+    .metric-label {
+      font-weight: 500;
+      color: #666;
+    }
+
+    .metric-value {
+      font-weight: 700;
+      color: #333;
+    }
+
+    .trend-up {
+      color: #28a745;
+    }
+
+    .trend-down {
+      color: #dc3545;
+    }
+
+    .cyclicity-badge {
+      display: inline-block;
+      background: #e7f5ff;
+      color: #1971c2;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .reversal-alert {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #856404;
+    }
+
+    .loading {
+      display: none;
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 20px;
+      color: #667eea;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border: 3px solid #f0f0f0;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .results {
+      display: none;
+      grid-column: 1 / -1;
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .results.show {
+      display: block;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .result-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .signal {
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .signal.call {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #28a745;
+    }
+
+    .signal.put {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #dc3545;
+    }
+
+    .signal.hold {
+      background: #fff3cd;
+      color: #856404;
+      border: 2px solid #ffc107;
+    }
+
+    .confidence {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #666;
+    }
+
+    .confidence-bar {
+      width: 100%;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      transition: width 0.3s;
+    }
+
+    .strategies {
+      margin-bottom: 20px;
+    }
+
+    .strategies-title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .strategy-item {
+      background: white;
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 3px solid #667eea;
+    }
+
+    .strategy-name {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .strategy-badge {
+      background: #667eea;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .explanation {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      color: #555;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 6px;
+      border-left: 4px solid #dc3545;
+      grid-column: 1 / -1;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 20px; }
+      h1 { font-size: 24px; }
+      .form-section { grid-template-columns: 1fr; }
+      .button-group { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎯 DBTrader</h1>
+      <p class="subtitle">Motor de Análise + Bot Automático</p>
+    </header>
+
+    <!-- BOT AUTOMÁTICO -->
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; margin-bottom: 30px; color: white;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+        <div>
+          <label style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase;">Moeda para Bot</label>
+          <select id="botPair" style="width: 100%; padding: 10px; border: none; border-radius: 4px; font-size: 14px;">
+            <option value="BTC-USD">BTC/USD</option>
+            <option value="ETH-USD">ETH/USD</option>
+            <option value="SOL-USD">SOL/USD</option>
+            <option value="XRP-USD">XRP/USD</option>
+            <option value="ADA-USD">ADA/USD</option>
+          </select>
+        </div>
+        <div id="botStatusDisplay" style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 600;">
+          🔴 Bot Parado
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button id="botStartBtn" style="flex: 1; padding: 12px; background: #28a745; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 14px;">
+            ▶️ Start
+          </button>
+          <button id="botStopBtn" style="flex: 1; padding: 12px; background: #dc3545; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 14px; opacity: 0.5; cursor: not-allowed;" disabled>
+            ⏹️ Stop
+          </button>
+        </div>
+      </div>
+
+      <!-- Status do Bot -->
+      <div id="botStats" style="display: none; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 4px; font-size: 13px; line-height: 1.8;">
+        <div>📊 Trades: <strong id="statTrades">0</strong></div>
+        <div>💰 Lucro: <strong id="statProfit">$0.00</strong></div>
+        <div>⏱️ Tempo: <strong id="statTime">-</strong></div>
+      </div>
+    </div>
+
+    <!-- HISTÓRICO DE TRADES -->
+    <div id="botHistorySection" style="display: none; margin-bottom: 30px;">
+      <h3 style="color: #333; margin-bottom: 15px;">📋 Histórico de Trades</h3>
+      <div id="botHistory" style="background: #f8f9fa; border-radius: 8px; max-height: 300px; overflow-y: auto; padding: 10px;">
+        <!-- Trades serão adicionados aqui -->
+      </div>
+    </div>
+
+    <!-- VALIDAÇÃO DE SINAIS -->
+    <div id="validationSection" style="display: none; margin-bottom: 30px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="color: #333; margin: 0;">🔍 Validar Sinal Atual</h3>
+        <button id="validateBtn" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">
+          ✓ Validar AGORA
+        </button>
+      </div>
+      <div id="validationResult" style="background: #f8f9fa; border-radius: 8px; padding: 15px; display: none;">
+        <!-- Resultado da validação será mostrado aqui -->
+      </div>
+    </div>
+
+    <form id="analysisForm">
+      <div class="form-section">
+        <div class="form-group">
+          <label for="pair">Par de Moeda</label>
+          <select id="pair" required>
+            <option value="">Selecione...</option>
+            <option value="BTC-USD">BTC/USD (Bitcoin)</option>
+            <option value="ETH-USD">ETH/USD (Ethereum)</option>
+            <option value="SOL-USD">SOL/USD (Solana)</option>
+            <option value="XRP-USD">XRP/USD (Ripple)</option>
+            <option value="ADA-USD">ADA/USD (Cardano)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="amount">Valor a Investir (USD)</label>
+          <input type="number" id="amount" placeholder="100" min="1" value="100" required>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-group">
+          <label for="timeframe">Timeframe</label>
+          <select id="timeframe" required>
+            <option value="">Selecione...</option>
+            <option value="1m">M1 (1 minuto)</option>
+            <option value="5m">M5 (5 minutos)</option>
+            <option value="15m">M15 (15 minutos)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>&nbsp;</label>
+          <select id="timeframes" required>
+            <option value="">Analisar todos?</option>
+            <option value="all" selected>Sim, todos (M1+M5+M15)</option>
+            <option value="single">Apenas o selecionado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section full">
+        <div class="button-group">
+          <button type="button" class="btn-analyze" id="analyzeBtn" onclick="analyze()">
+            📊 Análise Rápida
+          </button>
+          <button type="button" class="btn-analyze-deep" id="analyzeDeepBtn" onclick="analyzeDeep()">
+            🔬 Análise Profunda (Macro+Micro)
+          </button>
+        </div>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Analisando... Por favor, aguarde.</p>
+      </div>
+
+      <div class="error" id="error"></div>
+
+      <div class="results" id="results"></div>
+    </form>
+  </div>
+
+  <script>
+    console.log('[SCRIPT START] DBTrader script iniciando...');
+    window.analyze = async function analyze() {
+      const pair = document.getElementById('pair').value;
+      const amount = document.getElementById('amount').value;
+      const timeframe = document.getElementById('timeframe').value;
+      const allTimeframes = document.getElementById('timeframes').value === 'all';
+
+      if (!pair || !timeframe) {
+        showError('Preencha todos os campos!');
+        return;
+      }
+
+      const timeframesArray = allTimeframes ? ['1m', '5m', '15m'] : [timeframe];
+
+      const btn = document.getElementById('analyzeBtn');
+      btn.disabled = true;
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error').classList.remove('show');
+
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pair,
+            timeframes: timeframesArray
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Erro na análise');
+        }
+
+        displayResults(data, amount);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        btn.disabled = false;
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    window.analyzeDeep = async function analyzeDeep() {
+      const pair = document.getElementById('pair').value;
+      const timeframe = document.getElementById('timeframe').value;
+      const amount = document.getElementById('amount').value;
+
+      if (!pair || !timeframe) {
+        showError('Preencha todos os campos!');
+        return;
+      }
+
+      const btn = document.getElementById('analyzeDeepBtn');
+      btn.disabled = true;
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error').classList.remove('show');
+
+      try {
+        const response = await fetch('/api/analyze-deep', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pair,
+            timeframe
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Erro na análise profunda');
+        }
+
+        displayDeepResults(data, amount);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        btn.disabled = false;
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    window.displayDeepResults = function displayDeepResults(data, amount) {
+      const analysisData = data.analysis;
+      const resultsDiv = document.getElementById('results');
+      const finalSignal = analysisData.combined.recommendedAction;
+
+      let html = `
+        <div class="result-header">
+          <div class="result-title">${data.pair} - ${data.timeframe.toUpperCase()}</div>
+          <div style="color: #666; font-size: 14px;">${new Date().toLocaleTimeString('pt-BR')}</div>
+        </div>
+
+        <div class="signal ${finalSignal.signal.includes('COMPRA') ? 'call' : finalSignal.signal.includes('VENDA') ? 'put' : 'hold'}">
+          ${finalSignal.signal}
+        </div>
+
+        <div class="confidence">
+          ${finalSignal.confidence.toFixed(0)}% Confiança | Risco: ${finalSignal.riskLevel}
+          <div class="confidence-bar">
+            <div class="confidence-fill" style="width: ${finalSignal.confidence}%"></div>
+          </div>
+        </div>
+
+        <div class="analysis-tabs">
+          <button class="tab-btn active" data-tab="shortterm">📈 Tendência Curta (2-3h)</button>
+          <button class="tab-btn" data-tab="micro">🕯️ MICRO (Momento)</button>
+          <button class="tab-btn" data-tab="combined">🔗 Análise Combinada</button>
+        </div>
+
+        <!-- ABA TENDÊNCIA CURTA -->
+        <div id="tab-shortterm" class="tab-content show">
+          <div class="analysis-section macro">
+            <div class="section-title">📈 Tendência de Curto Prazo (Últimas 2-3 Horas)</div>
+
+            <div class="metric-row">
+              <span class="metric-label">Tendência</span>
+              <span class="metric-value ${analysisData.shortTerm.trend.direction.includes('UP') ? 'trend-up' : 'trend-down'}">
+                ${analysisData.shortTerm.trend.direction}
+              </span>
+            </div>
+
+            <div class="metric-row">
+              <span class="metric-label">Mudança de Preço</span>
+              <span class="metric-value ${parseFloat(analysisData.shortTerm.priceChange) > 0 ? 'trend-up' : 'trend-down'}">
+                ${analysisData.shortTerm.priceChange}%
+              </span>
+            </div>
+
+            <div class="metric-row">
+              <span class="metric-label">Volatilidade</span>
+              <span class="metric-value">${analysisData.shortTerm.volatility.toFixed(2)}%</span>
+            </div>
+
+            <div class="metric-row">
+              <span class="metric-label">Período Analisado</span>
+              <span class="metric-value">${analysisData.shortTerm.timeRange}</span>
+            </div>
+
+            <div class="metric-row">
+              <span class="metric-label">Suporte</span>
+              <span class="metric-value">$${analysisData.shortTerm.support_resistance.support.toFixed(2)}</span>
+            </div>
+
+            <div class="metric-row">
+              <span class="metric-label">Resistência</span>
+              <span class="metric-value">$${analysisData.shortTerm.support_resistance.resistance.toFixed(2)}</span>
+            </div>
+
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0; font-size: 14px; color: #666;">
+              <strong>Contexto:</strong> Nos últimos momentos, o mercado está <strong>${analysisData.shortTerm.trend.direction}</strong>
+              com variação de <strong>${analysisData.shortTerm.priceChange}%</strong>. Este é o contexto para sua entrada.
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA MICRO -->
+        <div id="tab-micro" class="tab-content">
+          <div class="analysis-section micro">
+            <div class="section-title">🕯️ Análise de Momento (MICRO)</div>
+
+            <div class="metric-row">
+              <span class="metric-label">Padrão do Último Candle</span>
+              <span class="metric-value">${analysisData.micro.lastCandlePattern.type}</span>
+            </div>
+
+            <div class="metric-row">
+              <span class="metric-label">Movimento Recente</span>
+              <span class="metric-value">${analysisData.micro.recentMovement.dominantDirection} (${analysisData.micro.recentMovement.upMoves} cima, ${analysisData.micro.recentMovement.downMoves} baixo)</span>
+            </div>
+
+            <div class="metric-row">
+              <span class="metric-label">Momentum</span>
+              <span class="metric-value ${analysisData.micro.momentum > 0 ? 'trend-up' : 'trend-down'}">
+                ${(analysisData.micro.momentum * 100).toFixed(0)}%
+              </span>
+            </div>
+
+            <div class="metric-row">
+              <span class="metric-label">Volume</span>
+              <span class="metric-value">${analysisData.micro.volumeProfile.volumeRatio}x da média</span>
+            </div>
+
+            ${analysisData.micro.reversalSignals.count > 0 ? `
+              <div class="reversal-alert">
+                ⚠️ <strong>Sinais de Reversão Detectados:</strong><br/>
+                ${analysisData.micro.reversalSignals.signals.join(', ')}
+              </div>
+            ` : ''}
+
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0; font-size: 14px; color: #666;">
+              <strong>Interpretação:</strong> O mercado está ${analysisData.micro.recentMovement.dominantDirection}
+              nos últimos momentos com padrão ${analysisData.micro.lastCandlePattern.type}.
+              ${analysisData.micro.reversalSignals.count > 0 ? 'Possível reversão em andamento!' : 'Movimento consistente.'}
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA COMBINADA -->
+        <div id="tab-combined" class="tab-content">
+          <div class="analysis-section" style="border-left-color: #667eea;">
+            <div class="section-title">🔗 Análise Combinada (Macro + Micro)</div>
+
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px; line-height: 1.8;">
+              <strong>Score de Compra:</strong> <span class="metric-value trend-up">${analysisData.combined.buyScore}</span><br/>
+              <strong>Score de Venda:</strong> <span class="metric-value trend-down">${analysisData.combined.sellScore}</span><br/>
+              <strong>Ação Recomendada:</strong> <span class="metric-value">${analysisData.combined.recommendedAction.signal}</span>
+            </div>
+
+            <div style="background: white; padding: 15px; border-radius: 6px; border-left: 3px solid #667eea;">
+              <strong style="color: #333;">📍 Reasoning da Análise:</strong>
+              <div style="color: #666; font-size: 14px; margin-top: 10px; line-height: 1.7;">
+                ${analysisData.combined.reasoning.map(r => `• ${r}`).join('<br/>')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: white; padding: 15px; border-radius: 6px; border-left: 3px solid #667eea; margin-top: 15px;">
+          <div style="font-weight: 600; color: #333; margin-bottom: 8px;">📍 Preço Atual: $${analysisData.currentPrice}</div>
+          <div style="font-weight: 600; color: #333; margin-bottom: 8px;">💰 Seu Investimento: $${amount}</div>
+          <div style="font-weight: 600; color: #11998e; margin-bottom: 8px; font-size: 16px;">
+            ${finalSignal.entryTiming || '⏱️ Timing não definido'}
+          </div>
+          <div style="font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 8px;">
+            ${finalSignal.entryExplanation || ''}
+          </div>
+          <div style="font-size: 12px; color: #999;">Análise gerada em: ${data.timestamp}</div>
+        </div>
+      `;
+
+      resultsDiv.innerHTML = html;
+      resultsDiv.classList.add('show');
+      resultsDiv.scrollIntoView({ behavior: 'smooth' });
+
+      // Setup tab listeners after rendering
+      setTimeout(() => setupTabListeners(), 100);
+    }
+
+    window.setupTabListeners = function setupTabListeners() {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const tabName = this.getAttribute('data-tab');
+
+          // Esconder todas as abas
+          document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('show');
+          });
+          document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('active');
+          });
+
+          // Mostrar aba selecionada
+          const tabContent = document.getElementById(`tab-${tabName}`);
+          if (tabContent) {
+            tabContent.classList.add('show');
+          }
+
+          // Marcar botão como ativo
+          this.classList.add('active');
+        });
+      });
+    }
+
+    window.displayResults = function displayResults(data, amount) {
+      const rec = data.analysis.recommendation;
+      const resultsDiv = document.getElementById('results');
+
+      let html = `
+        <div class="result-header">
+          <div class="result-title">${data.pair}</div>
+          <div style="color: #666; font-size: 14px;">${new Date().toLocaleTimeString('pt-BR')}</div>
+        </div>
+
+        <div class="signal ${rec.signal.includes('COMPRA') ? 'call' : rec.signal.includes('VENDA') ? 'put' : 'hold'}">
+          ${rec.signal}
+        </div>
+
+        <div class="confidence">
+          ${rec.confidence}% de Confiança
+          <div class="confidence-bar">
+            <div class="confidence-fill" style="width: ${rec.confidence}%"></div>
+          </div>
+        </div>
+
+        <div class="strategies">
+          <div class="strategies-title">🎯 Estratégias Mais Assertivas</div>
+          ${rec.topStrategies.map(s => `
+            <div class="strategy-item">
+              <span class="strategy-name">${s.name}</span>
+              <span class="strategy-badge">${s.assertivity} assertividade</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <div style="font-weight: 600; color: #333; margin-bottom: 8px;">💡 Por que este sinal?</div>
+          <div class="explanation">${rec.reasoning}</div>
+        </div>
+
+        <div style="background: white; padding: 15px; border-radius: 6px; border-left: 3px solid #667eea;">
+          <div style="font-weight: 600; color: #333; margin-bottom: 8px;">📍 Preço Atual: $${rec.price}</div>
+          <div style="font-weight: 600; color: #333; margin-bottom: 8px;">💰 Seu Investimento: $${amount}</div>
+          <div style="font-size: 12px; color: #666;">Timeframe Recomendado: <strong>${rec.bestTimeframe}</strong></div>
+        </div>
+      `;
+
+      resultsDiv.innerHTML = html;
+      resultsDiv.classList.add('show');
+      resultsDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    window.showError = function showError(msg) {
+      const error = document.getElementById('error');
+      error.textContent = '❌ ' + msg;
+      error.classList.add('show');
+    }
+
+    // Enter para analisar
+    document.getElementById('analysisForm').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        analyze();
+      }
+    });
+
+    // ===== BOT AUTOMÁTICO =====
+
+    let botStatusInterval = null;
+
+    document.getElementById('botStartBtn').addEventListener('click', startAutomaticBot);
+    document.getElementById('botStopBtn').addEventListener('click', stopAutomaticBot);
+    document.getElementById('validateBtn').addEventListener('click', validateCurrentSignal);
+
+    window.startAutomaticBot = async function startAutomaticBot() {
+      const pair = document.getElementById('botPair').value;
+
+      console.log(`Iniciando bot para ${pair}...`);
+
+      try {
+        const response = await fetch('/api/bot/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pair })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert('Erro ao iniciar bot: ' + data.error);
+          return;
+        }
+
+        // Atualizar UI
+        document.getElementById('botStartBtn').disabled = true;
+        document.getElementById('botStartBtn').style.opacity = '0.5';
+        document.getElementById('botStopBtn').disabled = false;
+        document.getElementById('botStopBtn').style.opacity = '1';
+        document.getElementById('botPair').disabled = true;
+
+        document.getElementById('botStatusDisplay').innerHTML = '🟢 Bot Ativo (' + pair + ')';
+        document.getElementById('botStats').style.display = 'block';
+        document.getElementById('botHistorySection').style.display = 'block';
+        document.getElementById('validationSection').style.display = 'block';
+
+        // Atualizar status a cada 10 segundos
+        updateBotStatus();
+        botStatusInterval = setInterval(updateBotStatus, 10000);
+
+        alert('Bot iniciado! Gerando sinais a cada 5 minutos...');
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      }
+    }
+
+    window.stopAutomaticBot = async function stopAutomaticBot() {
+      console.log('Parando bot...');
+
+      try {
+        const response = await fetch('/api/bot/stop', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert('Erro ao parar bot: ' + data.error);
+          return;
+        }
+
+        // Atualizar UI
+        document.getElementById('botStartBtn').disabled = false;
+        document.getElementById('botStartBtn').style.opacity = '1';
+        document.getElementById('botStopBtn').disabled = true;
+        document.getElementById('botStopBtn').style.opacity = '0.5';
+        document.getElementById('botPair').disabled = false;
+
+        document.getElementById('botStatusDisplay').innerHTML = '🔴 Bot Parado';
+
+        if (botStatusInterval) {
+          clearInterval(botStatusInterval);
+          botStatusInterval = null;
+        }
+
+        // Carregar histórico final
+        loadBotHistory();
+
+        alert('Bot parado! Verifique o histórico de trades.');
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      }
+    }
+
+    window.updateBotStatus = async function updateBotStatus() {
+      try {
+        const response = await fetch('/api/bot/status');
+        const data = await response.json();
+
+        if (data.bot.status === 'ativo') {
+          document.getElementById('botStatusDisplay').innerHTML = '🟢 Bot Ativo (' + data.bot.pair + ')';
+          document.getElementById('botStartBtn').disabled = true;
+          document.getElementById('botStartBtn').style.opacity = '0.5';
+          document.getElementById('botStopBtn').disabled = false;
+          document.getElementById('botStopBtn').style.opacity = '1';
+          document.getElementById('botPair').disabled = true;
+          document.getElementById('botStats').style.display = 'block';
+          document.getElementById('botHistorySection').style.display = 'block';
+          document.getElementById('validationSection').style.display = 'block';
+
+          document.getElementById('statTrades').textContent = data.bot.tradeCount;
+          document.getElementById('statProfit').textContent = '$' + data.bot.profit;
+          document.getElementById('statTime').textContent = data.bot.uptimeFormatted;
+        } else {
+          document.getElementById('botStatusDisplay').innerHTML = '🔴 Bot Parado';
+          document.getElementById('botStartBtn').disabled = false;
+          document.getElementById('botStartBtn').style.opacity = '1';
+          document.getElementById('botStopBtn').disabled = true;
+          document.getElementById('botStopBtn').style.opacity = '0.5';
+          document.getElementById('botPair').disabled = false;
+        }
+
+        // Carregar histórico
+        loadBotHistory();
+      } catch (err) {
+        console.error('Erro ao atualizar status:', err);
+      }
+    }
+
+    // Inicializar status ao carregar a página
+    window.initializeBotStatus = async function initializeBotStatus() {
+      await updateBotStatus();
+      botStatusInterval = setInterval(updateBotStatus, 10000);
+    }
+
+    // Chamar inicialização imediatamente
+    console.log('[INIT] Chamando initializeBotStatus()...');
+    initializeBotStatus().then(() => {
+      console.log('[INIT] initializeBotStatus() completada com sucesso!');
+    }).catch(err => {
+      console.error('[INIT] Erro em initializeBotStatus():', err);
+    });
+
+    window.loadBotHistory = async function loadBotHistory() {
+      try {
+        const response = await fetch('/api/bot/history?limit=20');
+        const data = await response.json();
+
+        if (!data.trades || data.trades.length === 0) {
+          document.getElementById('botHistory').innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Nenhum trade ainda</p>';
+          return;
+        }
+
+        let html = '<table style="width: 100%; font-size: 11px; border-collapse: collapse;">';
+        html += '<tr style="background: #e0e0e0; font-weight: 600; position: sticky; top: 0;"><th style="padding: 8px; text-align: left; border-bottom: 1px solid #ccc;">Sinal (Hora)</th><th style="text-align: left; border-bottom: 1px solid #ccc;">Entrada (Hora/Preço)</th><th style="text-align: left; border-bottom: 1px solid #ccc;">Saída (Hora/Preço)</th><th style="text-align: right; border-bottom: 1px solid #ccc;">Resultado</th><th style="text-align: center; border-bottom: 1px solid #ccc;">Status</th></tr>';
+
+        data.trades.forEach(trade => {
+          const signalTime = new Date(trade.signal_time).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+          const entryTime = new Date(trade.entry_time).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+          const exitTime = trade.exit_time ? new Date(trade.exit_time).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}) : '-';
+          const exitPrice = trade.exit_price ? `$${trade.exit_price.toFixed(2)}` : '-';
+
+          const signalColor = trade.signal === 'COMPRA' ? '#28a745' : '#dc3545';
+          const resultColor = trade.profit_loss > 0 ? '#28a745' : trade.profit_loss < 0 ? '#dc3545' : '#999';
+          const statusIcon = trade.status === 'aberto' ? '🔵' : trade.result === 'sucesso' ? '✓' : '✗';
+          const statusText = trade.status === 'aberto' ? 'Aberto' : trade.result === 'sucesso' ? 'Sucesso' : 'Erro';
+
+          const resultText = trade.profit_loss !== null && trade.profit_loss !== undefined
+            ? \`\$\${trade.profit_loss.toFixed(2)} (\${trade.profit_loss_percent?.toFixed(2)}%)\`
+            : 'Aguardando';
+
+          html += \`<tr style="border-bottom: 1px solid #f0f0f0; background: \${trade.status === 'aberto' ? '#f9f9f9' : 'white'}">
+            <td style="padding: 8px;">
+              <span style="color: \${signalColor}; font-weight: 600;">\${trade.signal}</span><br/>
+              <span style="color: #999; font-size: 10px;">\${signalTime}</span>
+            </td>
+            <td style="padding: 8px;">
+              \${entryTime}<br/>
+              <span style="color: #666; font-weight: 600;">$\${trade.entry_price.toFixed(2)}</span>
+            </td>
+            <td style="padding: 8px;">
+              \${exitTime}<br/>
+              <span style="color: #666; font-weight: 600;">\${exitPrice}</span>
+            </td>
+            <td style="padding: 8px; text-align: right; color: \${resultColor}; font-weight: 600;">
+              \${resultText}
+            </td>
+            <td style="text-align: center; padding: 8px;">
+              <div style="font-size: 14px;">\${statusIcon}</div>
+              <div style="font-size: 10px; color: #666;">\${statusText}</div>
+            </td>
+          </tr>\`;
+        });
+
+        html += '</table>';
+        document.getElementById('botHistory').innerHTML = html;
+      } catch (err) {
+        console.error('Erro ao carregar histórico:', err);
+      }
+    }
+
+    window.validateCurrentSignal = async function validateCurrentSignal() {
+      const pair = document.getElementById('botPair').value;
+
+      console.log(`Validando sinal ATUAL para ${pair}...`);
+
+      try {
+        const response = await fetch('/api/bot/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pair, timeframe: '1m' })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert('Erro: ' + data.error);
+          return;
+        }
+
+        // Exibir resultado
+        const validation = data.validation;
+        let html = `
+          <div style="border-left: 4px solid #667eea; padding: 15px; background: white; border-radius: 4px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+              <div>
+                <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Timestamp</strong>
+                <div style="font-size: 14px; color: #333; margin-top: 5px;">
+                  ${new Date(validation.timestamp).toLocaleString('pt-BR')}
+                </div>
+              </div>
+              <div>
+                <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Sinal Gerado</strong>
+                <div style="font-size: 18px; font-weight: 700; margin-top: 5px; color: ${validation.signal.includes('COMPRA') ? '#28a745' : '#dc3545'};">
+                  ${validation.signal}
+                </div>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+              <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
+                <strong style="font-size: 12px; color: #666;">Confiança</strong>
+                <div style="font-size: 14px; font-weight: 600; color: #333; margin-top: 5px;">
+                  ${validation.confidence.toFixed(0)}%
+                </div>
+              </div>
+              <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
+                <strong style="font-size: 12px; color: #666;">Risco</strong>
+                <div style="font-size: 14px; font-weight: 600; color: #333; margin-top: 5px;">
+                  ${validation.riskLevel}
+                </div>
+              </div>
+              <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
+                <strong style="font-size: 12px; color: #666;">Preço</strong>
+                <div style="font-size: 14px; font-weight: 600; color: #333; margin-top: 5px;">
+                  $${validation.analysis.shortTerm ? validation.analysis.shortTerm.support_resistance ? validation.analysis.shortTerm.support_resistance.resistance.toFixed(2) : '-' : '-'}
+                </div>
+              </div>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 12px; border-radius: 4px; font-size: 12px; line-height: 1.8; color: #666;">
+              <strong>📊 Análise MICRO (Momento):</strong><br/>
+              Padrão: <strong>${validation.analysis.micro.lastCandlePattern.type}</strong><br/>
+              Movimento: <strong>${validation.analysis.micro.recentMovement.dominantDirection}</strong><br/>
+              Momentum: <strong>${(validation.analysis.micro.momentum * 100).toFixed(0)}%</strong><br/>
+              <br/>
+              <strong>📈 Tendência Curta (2-3h):</strong><br/>
+              Direção: <strong>${validation.analysis.shortTerm.trend.direction}</strong><br/>
+              Mudança: <strong>${validation.analysis.shortTerm.priceChange}%</strong>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('validationResult').innerHTML = html;
+        document.getElementById('validationResult').style.display = 'block';
+
+        alert('✓ Sinal validado! Verifique a análise detalhada abaixo.');
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

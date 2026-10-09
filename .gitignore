@@ -40,3 +40,9 @@ Thumbs.db
 .vscode/
 .idea/
 **/node_modules/
+
+# Next.js build cache
+.next/
+.turbo/
+*.db-wal
+*.db-shm

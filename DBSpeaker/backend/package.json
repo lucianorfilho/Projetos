@@ -1,0 +1,17 @@
+{
+  "name": "dbspeaker-backend",
+  "version": "0.1.0",
+  "description": "DBSpeaker — Conversação em inglês com IA, correção e evolução de nível",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.93.0",
+    "better-sqlite3": "^12.4.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}

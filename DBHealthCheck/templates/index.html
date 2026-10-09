@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBHealthCheck - Monitor Oracle</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏥 DBHealthCheck</h1>
+            <p>Monitor de Saúde - Oracle Database</p>
+        </header>
+
+        <main>
+            <!-- Abas -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('config')">⚙️ Configuração</button>
+                <button class="tab-btn" onclick="switchTab('monitor')">📊 Monitor</button>
+                <button class="tab-btn" onclick="switchTab('schedule')">⏰ Agendamento</button>
+            </div>
+
+            <!-- Tab: Configuração -->
+            <div id="config" class="tab-content active">
+                <div class="section">
+                    <h2>Conexão Oracle</h2>
+                    <div class="form-group">
+                        <label>Host/IP:</label>
+                        <input type="text" id="oracle_host" placeholder="192.168.1.100">
+                    </div>
+                    <div class="form-group">
+                        <label>Porta:</label>
+                        <input type="number" id="oracle_port" value="1521">
+                    </div>
+                    <div class="form-group">
+                        <label>Instância (SID):</label>
+                        <input type="text" id="oracle_instance" placeholder="ORCL">
+                    </div>
+                    <div class="form-group">
+                        <label>Usuário:</label>
+                        <input type="text" id="oracle_username" placeholder="seu_usuario">
+                    </div>
+                    <div class="form-group">
+                        <label>Senha:</label>
+                        <input type="password" id="oracle_password" placeholder="sua_senha">
+                    </div>
+                    <button class="btn-secondary" onclick="testOracleConnection()">🔗 Testar Conexão</button>
+                </div>
+
+                <div class="section">
+                    <h2>Email (Gmail)</h2>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="email_address" placeholder="seu_email@gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Senha de Aplicação:</label>
+                        <input type="password" id="email_password" placeholder="sua_senha_app">
+                        <small>Gere em: https://myaccount.google.com/apppasswords</small>
+                    </div>
+                    <div class="form-group">
+                        <label>SMTP Server:</label>
+                        <input type="text" id="email_smtp" value="smtp.gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label>SMTP Port:</label>
+                        <input type="number" id="email_port" value="587">
+                    </div>
+                </div>
+
+                <button class="btn-primary" onclick="saveConfiguration()">💾 Salvar Configuração</button>
+            </div>
+
+            <!-- Tab: Monitor -->
+            <div id="monitor" class="tab-content">
+                <div class="section">
+                    <h2>Executar Monitoramento</h2>
+                    <button class="btn-primary btn-large" onclick="runNow()">▶️ Analisar Agora</button>
+                </div>
+
+                <div class="section">
+                    <h2>Resultado</h2>
+                    <div id="result-area" class="result-area">
+                        Clique em "Analisar Agora" para executar o monitoramento...
+                    </div>
+                    <button class="btn-secondary" onclick="downloadReport()">📥 Download Relatório</button>
+                </div>
+            </div>
+
+            <!-- Tab: Agendamento -->
+            <div id="schedule" class="tab-content">
+                <div class="section">
+                    <h2>Agendamento Automático</h2>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="schedule_enabled"> Ativar agendamento automático
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Horário de Execução (HH:MM):</label>
+                        <input type="time" id="schedule_time" value="05:50">
+                    </div>
+                    <small>⏰ O monitoramento será executado automaticamente diariamente no horário configurado.</small>
+                    <button class="btn-primary" onclick="saveSchedule()">💾 Salvar Agendamento</button>
+                </div>
+
+                <div class="section">
+                    <h2>ℹ️ Informações</h2>
+                    <p>O agendamento funciona quando a aplicação está aberta. Para executar continuamente, adicione ao Windows Task Scheduler.</p>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>DBHealthCheck v1.0 | Desenvolvido para monitoramento Oracle</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+================================================================================
+                    TRADEBOT - COMECE AQUI
+================================================================================
+
+Bem-vindo ao TradeBot! Sistema de análise técnica confluente para a Avalon.
+
+================================================================================
+INÍCIO RÁPIDO (3 PASSOS)
+================================================================================
+
+1. Instale as dependências:
+
+   python -m pip install -r requirements.txt
+
+2. Inicie o dashboard:
+
+   Windows:  run_dashboard.bat
+   Linux/Mac: python run.py
+
+   Ou execute diretamente:
+
+   python dashboard_server.py
+
+3. Abra no navegador:
+
+   http://localhost:5000
+
+================================================================================
+ATALHOS ÚTEIS
+================================================================================
+
+► Para testar a análise:
+  python test_simple.py
+
+► Para usar o menu interativo:
+  python run.py
+
+► Para ver a documentação completa:
+  Leia: DASHBOARD_GUIDE.md
+  Leia: PROJETO_RESUMO.md
+
+================================================================================
+ESTRUTURA DO PROJETO
+================================================================================
+
+TradeBot/
+├── main.py                 # Análise principal
+├── indicators.py           # Indicadores técnicos
+├── patterns.py             # Padrões de candlestick
+├── signals.py              # Geração de sinais
+├── dashboard_server.py     # Servidor web
+├── run.py                  # Menu interativo
+├── run_dashboard.bat       # Iniciar (Windows)
+├── test_simple.py          # Testes
+├── config.py               # Configurações
+├── templates/dashboard.html # Interface web
+├── screenshots/            # Dados e logs
+├── requirements.txt        # Dependências
+├── COMECE_AQUI.txt        # Este arquivo
+├── DASHBOARD_GUIDE.md     # Guia do dashboard
+├── PROJETO_RESUMO.md      # Resumo completo
+└── README.md              # Documentação técnica
+
+================================================================================
+RECURSO PRINCIPAL: DASHBOARD
+================================================================================
+
+O Dashboard exibe em tempo real:
+
+  ✓ Gráfico de preços (últimas 20 velas)
+  ✓ Indicadores técnicos (RCI, RSI, Médias Móveis, Bollinger)
+  ✓ Padrões detectados (Torres Gêmeas, C3, Padrão 2.3, Five Flip)
+  ✓ Sinal atual (COMPRA/VENDA/AGUARDE com confiança)
+  ✓ Histórico de sinais
+  ✓ Métricas da conta (saldo, taxa vitória, lucro)
+  ✓ Controles (Analisar Agora, Atualizar)
+
+================================================================================
+COMO USAR O DASHBOARD
+================================================================================
+
+1. Clique "Analisar Agora" para forçar uma análise
+2. Veja o sinal gerado e sua confiança
+3. Verifique quais padrões foram detectados
+4. Consulte o histórico de sinais anteriores
+5. Monitore os indicadores em tempo real
+
+================================================================================
+INTERPRETANDO OS SINAIS
+================================================================================
+
+COMPRA (↑)    -> Confluência de indicadores para COMPRAR
+VENDA (↓)     -> Confluência de indicadores para VENDER
+AGUARDE (→)   -> Sem confluência clara, aguarde
+
+Confiança:
+  > 90%  = Sinal muito confiável
+  75-90% = Sinal confiável
+  50-75% = Sinal moderado
+  < 50%  = Sinal fraco
+
+Força:
+  FORTE    = Múltiplos indicadores alinhados
+  MODERADO = Alguns indicadores confirmam
+  FRACO    = Poucos indicadores confirmam
+
+================================================================================
+FUNCIONALIDADES PRINCIPAIS
+================================================================================
+
+✓ Indicadores Técnicos:
+  - RCI (Range Commodity Index)
+  - Média Móvel 5 e 20 períodos
+  - Bandas de Bollinger
+  - Fibonacci
+
+✓ Padrões Detectados:
+  - Torres Gêmeas
+  - C3
+  - Padrão 2.3
+  - Five Flip
+
+✓ Análise Confluente:
+  - Múltiplos indicadores = sinal mais confiável
+  - Combina técnico + padrões
+  - Percentual de confiança (0-100%)
+
+================================================================================
+TESTES
+================================================================================
+
+Executar testes:
+
+  python test_simple.py
+
+Resultado esperado:
+
+  ✓ Indicadores: PASSOU
+  ✓ Padrões: PASSOU
+  ✓ Sinal COMPRA: PASSOU
+  ✓ Sinal VENDA: PASSOU
+  ✓ Sinal Neutro: PASSOU
+
+  Resultado: 5/5 TESTES PASSARAM
+
+================================================================================
+CONFIGURAÇÃO
+================================================================================
+
+Para customizar o comportamento, edite:
+
+  config.py
+
+Principais configurações:
+
+  - Períodos dos indicadores
+  - Thresholds de confluência
+  - Sensibilidade de padrões
+  - Intervalo de análise
+
+================================================================================
+AVISO IMPORTANTE
+================================================================================
+
+⚠️  Este é um sistema EDUCACIONAL de análise técnica
+
+  ✓ Use em conta DEMO primeiro
+  ✓ Valide sinais com análise manual
+  ✓ Nunca arrisque mais do que pode perder
+  ✓ Trading é arriscado - possível perder tudo
+  ✓ Sem garantias de lucro
+
+================================================================================
+PRÓXIMAS ETAPAS
+================================================================================
+
+1. Execute: python test_simple.py (validar instalação)
+2. Inicie: python dashboard_server.py (abrir dashboard)
+3. Explore: http://localhost:5000 (interface web)
+4. Teste: Clique "Analisar Agora" (gerar sinais)
+5. Estude: DASHBOARD_GUIDE.md (saber mais)
+6. Customize: config.py (ajustar para sua estratégia)
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problema: "ModuleNotFoundError: No module named 'flask'"
+Solução: pip install -r requirements.txt
+
+Problema: "Address already in use"
+Solução:
+  - Feche outras instâncias do dashboard
+  - Ou altere a porta em dashboard_server.py
+
+Problema: Dashboard não carrega
+Solução:
+  - Abra http://localhost:5000 no navegador
+  - Verifique o console (F12) para erros
+  - Reinicie o servidor
+
+================================================================================
+SUPPORT
+================================================================================
+
+Dúvidas?
+1. Leia DASHBOARD_GUIDE.md
+2. Leia PROJETO_RESUMO.md
+3. Verifique config.py
+4. Rode os testes: python test_simple.py
+
+================================================================================
+VERSÃO & INFO
+================================================================================
+
+Projeto: TradeBot v1.0
+Autor: Desenvolvido com Claude Code
+Data: 10 de Julho de 2026
+Plataforma: Avalon Broker
+Timeframe: 1 minuto (customizável)
+
+================================================================================
+BOA SORTE! 📈💪
+================================================================================
+
+Agora execute um destes comandos para começar:
+
+  Windows:  run_dashboard.bat
+  Qualquer: python dashboard_server.py
+  Menu:     python run.py
+
+Depois acesse: http://localhost:5000
+
+Bom trading! 🚀
+
+================================================================================

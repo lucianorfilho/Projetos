@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DBTrader Bot Status</title>
+</head>
+<body>
+  <h1>DBTrader - Status do Bot</h1>
+  <div id="status">Carregando...</div>
+
+  <script>
+    async function updateStatus() {
+      try {
+        const response = await fetch('/api/bot/status');
+        const data = await response.json();
+
+        const statusDiv = document.getElementById('status');
+        if (data.bot.status === 'ativo') {
+          statusDiv.innerHTML = `<h2>🟢 Bot Ativo - ${data.bot.pair}</h2>
+            <p>Trades: ${data.bot.tradeCount}</p>
+            <p>Lucro: $${data.bot.profit}</p>
+            <p>Tempo: ${data.bot.uptimeFormatted}</p>`;
+        } else {
+          statusDiv.innerHTML = '<h2>🔴 Bot Parado</h2>';
+        }
+      } catch (err) {
+        document.getElementById('status').innerHTML = 'Erro: ' + err.message;
+      }
+    }
+
+    // Atualizar ao carregar
+    updateStatus();
+
+    // Atualizar a cada 5 segundos
+    setInterval(updateStatus, 5000);
+  </script>
+</body>
+</html>

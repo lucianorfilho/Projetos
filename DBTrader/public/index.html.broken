@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EURUSD M5 - DBTrader</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 15px;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 13px;
+    }
+
+    .chart-controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-update {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-update:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-zoom {
+      background: #f0f0f0;
+      color: #333;
+      width: 45px;
+      padding: 12px;
+    }
+
+    .btn-zoom:hover {
+      background: #e0e0e0;
+    }
+
+    .zoom-level {
+      min-width: 60px;
+      text-align: center;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .chart-container {
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+
+    #chartInner {
+      background: white;
+      border-radius: 4px;
+      padding: 15px;
+      min-height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #666;
+    }
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      max-width: 100%;
+    }
+
+    .error {
+      color: #d32f2f;
+      background: #ffebee;
+      padding: 12px;
+      border-radius: 4px;
+      border-left: 4px solid #d32f2f;
+    }
+
+    .info {
+      color: #1976d2;
+      background: #e3f2fd;
+      padding: 12px;
+      border-radius: 4px;
+      border-left: 4px solid #1976d2;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📊 EURUSD M1</h1>
+      <p class="subtitle">Dados Reais via MetaTrader5 (Avalon) | Horário Local: Brasília</p>
+    </header>
+
+    <div class="chart-controls">
+      <button class="btn-update" id="btnUpdate">🔄 Atualizar</button>
+      <button class="btn-update" id="btnAutoTrade" style="background: #4caf50;">🤖 Auto-Trading ON</button>
+      <button class="btn-update" id="btnClearTrades" style="background: #d32f2f; margin-left: 10px;">🗑️ Limpar Histórico</button>
+    </div>
+
+    <div class="chart-container">
+      <div id="chartInner">Carregando...</div>
+    </div>
+
+    <div class="info">
+      ⏰ <strong>Horários:</strong> Brasília (GMT-3) | 📊 Dados Reais: Avalon MT5<br>
+      💡 Scroll horizontal para navegar. Passe o mouse sobre as velas para ver detalhes dos OHLCV.
+    </div>
+
+    <div style="margin-top: 30px;">
+      <h2 style="color: #333; margin-bottom: 15px;">📈 Histórico de Trades</h2>
+      <div id="tradeHistory" style="background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; max-height: 400px; overflow-y: auto;">
+        <p style="color: #999; text-align: center;">Nenhum trade simulado ainda</p>
+      </div>
+      <div style="margin-top: 15px; font-size: 13px; color: #666;">
+        <strong>Resumo:</strong>
+        <br>Total Trades: <span id="totalTrades">0</span>
+        <br>Ganhos: <span id="totalGain" style="color: #00c853;">0</span> | Perdas: <span id="totalLoss" style="color: #d32f2f;">0</span>
+        <br>Taxa Vitória: <span id="winRate">0%</span>
+      </div>
+    </div>
+    <div style="margin-top: 30px;">
+      <h2 style="color: #333; margin-bottom: 15px;">📊 Análise Técnica</h2>
+      <div id="analysisPanel" style="background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div>
+            <strong style="font-size: 16px; color: #333;">Status do Mercado</strong>
+            <div id="marketStatus" style="margin-top: 10px; padding: 15px; background: white; border-radius: 4px; font-size: 14px; color: #666;">
+              Aguardando análise...
+            </div>
+          </div>
+          <div>
+            <strong style="font-size: 16px; color: #333;">Confluência de Sinais</strong>
+            <div id="confluenceInfo" style="margin-top: 10px; padding: 15px; background: white; border-radius: 4px; font-size: 14px; color: #666;">
+              Aguardando análise...
+            </div>
+          </div>
+          <div>
+            <strong style="font-size: 16px; color: #333;">Padrões Detectados</strong>
+            <div id="patternsInfo" style="margin-top: 10px; padding: 15px; background: white; border-radius: 4px; font-size: 14px; color: #666;">
+              Nenhum padrão
+            </div>
+          </div>
+          <div>
+            <strong style="font-size: 16px; color: #333;">Indicadores</strong>
+            <div id="indicatorsInfo" style="margin-top: 10px; padding: 15px; background: white; border-radius: 4px; font-size: 14px; color: #666;">
+              Aguardando análise...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <h3 style="color: #333; margin-bottom: 15px;">📈 RSI (14)</h3>
+        <canvas id="rsiChart" style="border: 1px solid #e0e0e0; border-radius: 8px; display: block; background: white;"></canvas>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <h3 style="color: #333; margin-bottom: 15px;">📊 MACD</h3>
+        <canvas id="macdChart" style="border: 1px solid #e0e0e0; border-radius: 8px; display: block; background: white;"></canvas>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <button id="btnExportAnalysis" class="btn-update" style="background: #9c27b0;">📥 Exportar Análise</button>
+        <button id="btnToggleAlerts" class="btn-update" style="background: #2196f3; margin-left: 10px;">🔔 Ativar Alertas</button>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <h3 style="color: #333; margin-bottom: 15px;">📋 Histórico de Análises</h3>
+        <div id="analysisHistory" style="background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; max-height: 300px; overflow-y: auto;">
+          <p style="color: #999; text-align: center;">Nenhuma análise registrada</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="technical-indicators.js"></script>
+  <script>
+    let currentCandles = [];
+    let chartZoom = 1;
+    let chartCanvas = null;
+    const CHART_TYPE = 'avalon';
+    const SYMBOL = 'EURUSD';
+
+    // Zoom controls
+    document.getElementById('btnZoomOut').addEventListener('click', () => {
+      chartZoom = Math.max(0.5, chartZoom - 0.1);
+      updateZoomLevel();
+      drawCandleChart(currentCandles);
+    });
+
+    document.getElementById('btnZoomIn').addEventListener('click', () => {
+      chartZoom = Math.min(3, chartZoom + 0.1);
+      updateZoomLevel();
+      drawCandleChart(currentCandles);
+    });
+
+    let autoTradingActive = false;
+    let autoTradingInterval = null;
+
+    document.getElementById('btnUpdate').addEventListener('click', loadChart);
+    document.getElementById('btnAutoTrade').addEventListener('click', toggleAutoTrading);
+    document.getElementById('btnExportAnalysis').addEventListener('click', exportAnalysis);
+    document.getElementById('btnToggleAlerts').addEventListener('click', toggleAlerts);
+    document.getElementById('btnClearTrades').addEventListener('click', clearTradeHistory);
+
+    let tradeHistory = [];
+    let analysisHistory = [];
+    let alertsEnabled = false;
+
+    function isValidEntryTime(candle) {
+      const brasiilaTime = new Date((candle.time - 6 * 3600) * 1000);
+      const minutes = brasiilaTime.getMinutes();
+      // Horários válidos: 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55
+      return minutes % 5 === 0;
+    }
+
+    function simulateTrades() {
+      if (currentCandles.length < 5) {
+        alert('Precisa de pelo menos 5 velas para simular trades. Clique em Atualizar primeiro!');
+        return;
+      }
+
+      tradeHistory = [];
+      let gains = 0;
+      let losses = 0;
+
+      // Percorrer candles com entradas válidas
+      for (let i = 0; i < currentCandles.length - 2; i++) {
+        const candle = currentCandles[i];
+
+        // Verificar se é horário válido para entrada
+        if (!isValidEntryTime(candle)) {
+          continue;
+        }
+
+        const entryPrice = candle.close;
+        const entryTime = new Date((candle.time - 6 * 3600) * 1000);
+        const entryTimeStr = entryTime.toLocaleString('pt-BR');
+
+        // Lógica simples: pega próximas 2 velas para saída
+        const nextCandle = currentCandles[i + 1];
+        const exitPrice = nextCandle.close;
+        const exitTime = new Date((nextCandle.time - 6 * 3600) * 1000);
+        const exitTimeStr = exitTime.toLocaleString('pt-BR');
+
+        const pips = Math.round((exitPrice - entryPrice) * 10000);
+        const result = exitPrice > entryPrice ? 'GAIN ✅' : 'LOSS ❌';
+        const resultColor = exitPrice > entryPrice ? '#00c853' : '#d32f2f';
+
+        if (exitPrice > entryPrice) {
+          gains++;
+        } else {
+          losses++;
+        }
+
+        tradeHistory.push({
+          entryTime: entryTimeStr,
+          entryPrice: entryPrice.toFixed(4),
+          exitTime: exitTimeStr,
+          exitPrice: exitPrice.toFixed(4),
+          pips: pips,
+          result: result,
+          color: resultColor
+        });
+      }
+
+      displayTradeHistory(gains, losses);
+    }
+
+    function performTechnicalAnalysis(candles) {
+      if (candles.length < 26) return; // Precisa de pelo menos 26 para MACD
+
+      // Calcular indicadores
+      const bb = TechnicalIndicators.bollingerBands(candles, 20, 2);
+      const rsiValues = TechnicalIndicators.rsi(candles, 14);
+      const macdValues = TechnicalIndicators.macd(candles, 12, 26, 9);
+      const patterns = TechnicalIndicators.detectCandlePatterns(candles);
+
+      // Fibonacci (últimos 50 candles para encontrar min/max)
+      const recentCandles = candles.slice(-50);
+      const recentLow = Math.min(...recentCandles.map(c => c.low));
+      const recentHigh = Math.max(...recentCandles.map(c => c.high));
+      const fibonacci = TechnicalIndicators.fibonacciLevels(recentLow, recentHigh);
+
+      // Análise de confluência (mantém para histórico)
+      const confluence = TechnicalIndicators.confluenceAnalysis(candles, bb, rsiValues, macdValues, patterns);
+
+      // Novo sinal CRITERIOSO
+      const criterious = generateCriteriousSignal(candles, bb, rsiValues, macdValues, patterns);
+
+      // Desenhar gráficos
+      drawRSIChart(candles, rsiValues);
+      drawMACDChart(candles, macdValues);
+
+      // Atualizar painéis com sinal criterioso
+      updateAnalysisPanel(candles, rsiValues, macdValues, patterns, criterious, bb, fibonacci);
+
+      // Registrar na história
+      const lastIdx = candles.length - 1;
+      const analysisEntry = {
+        time: new Date().toLocaleString('pt-BR'),
+        status: criterious.signal,
+        confidence: criterious.confidence,
+        bullish: criterious.bullishScore,
+        bearish: criterious.bearishScore,
+        rsi: rsiValues[lastIdx] ? rsiValues[lastIdx].toFixed(1) : 'N/A',
+        patterns: patterns[lastIdx]?.join(', ') || 'Nenhum',
+        reasons: criterious.reasons
+      };
+      analysisHistory.unshift(analysisEntry);
+      if (analysisHistory.length > 15) analysisHistory.pop();
+      updateAnalysisHistory();
+
+      // Ativar alerta se sinal FORTE
+      if (alertsEnabled && criterious.confidence > 75 && !criterious.signal.includes('NEUTRO')) {
+        playAlert(criterious.signal);
+      }
+    }
+
+    function playAlert(signal) {
+      // Criar beep simples (apenas visual por agora)
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = signal.includes('COMPRA') ? 800 : 600;
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+
+      // Notificação visual
+      alert(`🚨 ${signal} - Confluência Forte!`);
+    }
+
+    function updateAnalysisHistory() {
+      const historyDiv = document.getElementById('analysisHistory');
+      if (analysisHistory.length === 0) {
+        historyDiv.innerHTML = '<p style="color: #999; text-align: center;">Nenhuma análise registrada</p>';
+        return;
+      }
+
+      let html = '<ul style="list-style: none; padding: 0;">';
+      analysisHistory.forEach((entry, idx) => {
+        const isBuy = entry.status.includes('COMPRA');
+        const isSell = entry.status.includes('VENDA');
+        const color = isBuy ? (entry.status.includes('FORTE') ? '#00c853' : '#4caf50') :
+                      isSell ? (entry.status.includes('FORTE') ? '#d32f2f' : '#e53935') : '#ff9800';
+
+        const reasonsStr = entry.reasons ? entry.reasons.slice(0, 2).join(' • ') : 'Sem motivo';
+
+        html += `<li style="padding: 10px; border-bottom: 1px solid #eee; font-size: 11px; background: rgba(0,0,0,0.02);">
+          <strong style="color: ${color}; font-size: 12px;">${entry.status}</strong>
+          <span style="color: #999;">${entry.confidence}%</span>
+          <span style="color: #aaa; font-size: 10px;">${entry.time}</span><br>
+          <div style="margin-top: 4px; color: #666; font-size: 10px;">${reasonsStr}</div>
+        </li>`;
+      });
+      html += '</ul>';
+      historyDiv.innerHTML = html;
+    }
+
+    function updateAnalysisPanel(candles, rsi, macd, patterns, criterious, bb, fibonacci) {
+      const lastIdx = candles.length - 1;
+      const lastRSI = rsi[lastIdx];
+      const lastMACD = macd[lastIdx];
+      const lastPattern = patterns[lastIdx];
+      const lastCandle = candles[lastIdx];
+      const lastBB = bb[lastIdx];
+
+      // Status do Mercado - Com sinal CRITERIOSO
+      const statusDiv = document.getElementById('marketStatus');
+      let statusColor = '#666';
+      if (criterious.signal.includes('COMPRA')) statusColor = criterious.signal.includes('FORTE') ? '#00c853' : '#4caf50';
+      if (criterious.signal.includes('VENDA')) statusColor = criterious.signal.includes('FORTE') ? '#d32f2f' : '#e53935';
+      if (criterious.signal.includes('NEUTRO')) statusColor = '#ff9800';
+
+      let reasonsHtml = criterious.reasons.map(r => `<div style="font-size: 11px; margin: 3px 0;">✓ ${r}</div>`).join('');
+
+      statusDiv.innerHTML = `
+        <div style="font-size: 18px; font-weight: 600; color: ${statusColor};">${criterious.signal}</div>
+        <div style="margin-top: 10px; font-size: 12px; color: #999;">
+          Confiança: ${criterious.confidence}%<br>
+          Score Bullish: ${criterious.bullishScore} | Bearish: ${criterious.bearishScore}
+        </div>
+        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
+          ${reasonsHtml || '<div style="font-size: 11px; color: #ccc;">Sem sinais conclusivos</div>'}
+        </div>
+      `;
+
+      // Detalhes dos Indicadores
+      const confDiv = document.getElementById('confluenceInfo');
+      confDiv.innerHTML = `
+        <div style="margin: 5px 0;">
+          <strong>Bollinger Bands:</strong> ${lastBB && lastBB.middle ? (lastCandle.close > lastBB.middle ? '📈 Acima' : '📉 Abaixo') : 'N/A'}<br>
+          <strong>RSI (14):</strong> ${lastRSI ? lastRSI.toFixed(1) + (lastRSI > 70 ? ' 🔴 Sobrecomprado' : lastRSI < 30 ? ' 🟢 Sobrevendido' : ' 🟡 Neutro') : 'N/A'}<br>
+          <strong>MACD:</strong> ${lastMACD && lastMACD.histogram ? (lastMACD.histogram > 0 ? '📈 Positivo' : '📉 Negativo') : 'N/A'}
+        </div>
+      `;
+
+      // Padrões
+      const patternsDiv = document.getElementById('patternsInfo');
+      if (lastPattern && lastPattern.length > 0) {
+        patternsDiv.innerHTML = lastPattern.map(p => `<div style="margin: 3px 0;">🕯️ ${p}</div>`).join('');
+      } else {
+        patternsDiv.innerHTML = 'Nenhum padrão';
+      }
+
+      // Indicadores
+      const indDiv = document.getElementById('indicatorsInfo');
+      indDiv.innerHTML = `
+        <div style="margin: 5px 0; font-size: 12px;">
+          <strong>Fibonacci Levels:</strong><br>
+          🔴 Resistência: ${fibonacci.level_0.toFixed(4)}<br>
+          🟠 61.8%: ${fibonacci.level_618.toFixed(4)}<br>
+          🟡 50%: ${fibonacci.level_500.toFixed(4)}<br>
+          🟢 38.2%: ${fibonacci.level_382.toFixed(4)}<br>
+          🟢 Suporte: ${fibonacci.level_100.toFixed(4)}
+        </div>
+      `;
+    }
+
+    function toggleAutoTrading() {
+      autoTradingActive = !autoTradingActive;
+      const btn = document.getElementById('btnAutoTrade');
+
+      if (autoTradingActive) {
+        btn.style.background = '#ff6f00';
+        btn.textContent = '🤖 Auto-Trading OFF';
+        // Carregar dados primeiro, depois iniciar
+        loadChart().then(() => startAutoTrading());
+      } else {
+        btn.style.background = '#4caf50';
+        btn.textContent = '🤖 Auto-Trading ON';
+        stopAutoTrading();
+      }
+    }
+
+    function startAutoTrading() {
+      console.log('✅ Auto-Trading ATIVO - Monitorando velas a cada 5 segundos');
+
+      // Verificar a cada 5 segundos se chegou nova vela
+      autoTradingInterval = setInterval(() => {
+        if (currentCandles && currentCandles.length > 25) {
+          executeAutoTradingCycle();
+        }
+      }, 5000); // 5 segundos para teste
+    }
+
+    function stopAutoTrading() {
+      if (autoTradingInterval) {
+        clearInterval(autoTradingInterval);
+        autoTradingInterval = null;
+      }
+      console.log('❌ Auto-Trading parado');
+    }
+
+    function executeAutoTradingCycle() {
+      if (!currentCandles || currentCandles.length < 26) {
+        console.log('⏳ Aguardando dados... Candles:', currentCandles?.length || 0);
+        return;
+      }
+
+      // Calcular indicadores
+      const bb = TechnicalIndicators.bollingerBands(currentCandles, 20, 2);
+      const rsiValues = TechnicalIndicators.rsi(currentCandles, 14);
+      const macdValues = TechnicalIndicators.macd(currentCandles, 12, 26, 9);
+      const patterns = TechnicalIndicators.detectCandlePatterns(currentCandles);
+
+      // Gerar sinal criterioso
+      const signal = generateCriteriousSignal(currentCandles, bb, rsiValues, macdValues, patterns);
+
+      const lastIdx = currentCandles.length - 1;
+      const lastCandle = currentCandles[lastIdx];
+      const lastTime = new Date((lastCandle.time - 6 * 3600) * 1000);
+
+      // Verificar se está em horário "cheio"
+      const minutes = lastTime.getMinutes();
+      const isValidTime = minutes % 5 === 0;
+
+      // Log para debug
+      console.log(`🕐 ${lastTime.toLocaleTimeString('pt-BR')} | Sinal: ${signal.signal} | Bull: ${signal.bullishScore} | Bear: ${signal.bearishScore}`);
+
+      // Executar trade com sinal forte (score >= 2) - SEM restrição de horário por enquanto
+      if (signal.bullishScore >= 2 && signal.bearishScore === 0) {
+        // COMPRA
+        console.log('✅ Gerando COMPRA automática!');
+        executeTrade('COMPRA', lastCandle.close, signal.signal, lastTime);
+      } else if (signal.bearishScore >= 2 && signal.bullishScore === 0) {
+        // VENDA
+        console.log('✅ Gerando VENDA automática!');
+        executeTrade('VENDA', lastCandle.close, signal.signal, lastTime);
+      }
+    }
+
+    let lastTradeEntry = null;
+    let lastTradeEntryPrice = null;
+    let lastTradeType = null;
+
+    function executeTrade(type, price, signal, time) {
+      // Se já há uma entrada pendente, usar próxima vela como saída
+      if (lastTradeEntry !== null && lastTradeEntryPrice !== null) {
+        const exitPrice = price;
+        const exitTime = new Date();
+        const pips = Math.round((exitPrice - lastTradeEntryPrice) * 10000);
+        const result = lastTradeType === 'COMPRA' ? (exitPrice > lastTradeEntryPrice ? 'GAIN ✅' : 'LOSS ❌') :
+                       (exitPrice < lastTradeEntryPrice ? 'GAIN ✅' : 'LOSS ❌');
+
+        // Registrar trade completo
+        const trade = {
+          entryTime: lastTradeEntry.toLocaleString('pt-BR'),
+          entryPrice: lastTradeEntryPrice.toFixed(4),
+          exitTime: exitTime.toLocaleString('pt-BR'),
+          exitPrice: exitPrice.toFixed(4),
+          pips: pips,
+          result: result,
+          color: result.includes('GAIN') ? '#00c853' : '#d32f2f',
+          type: lastTradeType,
+          signal: signal
+        };
+
+        tradeHistory.unshift(trade);
+        console.log(`📊 Trade ${lastTradeType}: ${result} | ${pips} pips`);
+
+        // Resetar
+        lastTradeEntry = null;
+        lastTradeEntryPrice = null;
+        lastTradeType = null;
+
+        // Atualizar histórico
+        displayTradeHistory(
+          tradeHistory.filter(t => t.result.includes('GAIN')).length,
+          tradeHistory.filter(t => t.result.includes('LOSS')).length
+        );
+      }
+
+      // Nova entrada
+      if (signal.bullishScore >= 2 || signal.bearishScore >= 2) {
+        lastTradeEntry = time;
+        lastTradeEntryPrice = price;
+        lastTradeType = type;
+        console.log(`🟢 Entrada ${type} em ${time.toLocaleString('pt-BR')} | ${price.toFixed(4)} | ${signal}`);
+      }
+    }
+
+    function clearTradeHistory() {
+      if (confirm('Deseja limpar o histórico de trades?')) {
+        tradeHistory = [];
+        document.getElementById('tradeHistory').innerHTML = '<p style="color: #999; text-align: center;">Nenhum trade simulado ainda</p>';
+        document.getElementById('totalTrades').textContent = '0';
+        document.getElementById('totalGain').textContent = '0';
+        document.getElementById('totalLoss').textContent = '0';
+        document.getElementById('winRate').textContent = '0%';
+      }
+    }
+
+    function generateCriteriousSignal(candles, bb, rsi, macd, patterns) {
+      if (candles.length < 5) return { signal: 'NEUTRO', confidence: 0, reasons: [] };
+
+      const lastIdx = candles.length - 1;
+      const lastCandle = candles[lastIdx];
+      const lastRSI = rsi[lastIdx];
+      const lastBB = bb[lastIdx];
+      const lastMACD = macd[lastIdx];
+      const lastPattern = patterns[lastIdx];
+
+      let bullishScore = 0;
+      let bearishScore = 0;
+      let reasons = [];
+
+      // 1. RSI - muito criterioso
+      if (lastRSI !== null) {
+        if (lastRSI < 25) {
+          bullishScore += 2; // Forte oversold
+          reasons.push(`RSI ${lastRSI.toFixed(1)} - Forte Sobrevenda`);
+        } else if (lastRSI < 35) {
+          bullishScore += 1;
+          reasons.push(`RSI ${lastRSI.toFixed(1)} - Sobrevenda`);
+        }
+
+        if (lastRSI > 75) {
+          bearishScore += 2; // Forte overbought
+          reasons.push(`RSI ${lastRSI.toFixed(1)} - Forte Sobrecompra`);
+        } else if (lastRSI > 65) {
+          bearishScore += 1;
+          reasons.push(`RSI ${lastRSI.toFixed(1)} - Sobrecompra`);
+        }
+      }
+
+      // 2. Bollinger Bands - preço toca as bandas
+      if (lastBB && lastBB.lower !== null && lastBB.upper !== null) {
+        const bbRange = lastBB.upper - lastBB.lower;
+        const distToLower = lastCandle.close - lastBB.lower;
+        const distToUpper = lastBB.upper - lastCandle.close;
+
+        // Muito perto da banda inferior
+        if (distToLower < bbRange * 0.05) {
+          bullishScore += 2;
+          reasons.push('Preço toca Banda Inferior');
+        } else if (distToLower < bbRange * 0.15) {
+          bullishScore += 1;
+          reasons.push('Preço próx. Banda Inferior');
+        }
+
+        // Muito perto da banda superior
+        if (distToUpper < bbRange * 0.05) {
+          bearishScore += 2;
+          reasons.push('Preço toca Banda Superior');
+        } else if (distToUpper < bbRange * 0.15) {
+          bearishScore += 1;
+          reasons.push('Preço próx. Banda Superior');
+        }
+      }
+
+      // 3. Padrões de vela - muito assertivo
+      if (lastPattern && lastPattern.length > 0) {
+        if (lastPattern.includes('Hammer')) {
+          bullishScore += 2;
+          reasons.push('Padrão Hammer (Reversão Alta)');
+        }
+        if (lastPattern.includes('Engulfing Bull')) {
+          bullishScore += 2;
+          reasons.push('Engulfing Bullish (Força Alta)');
+        }
+        if (lastPattern.includes('Engulfing Bear')) {
+          bearishScore += 2;
+          reasons.push('Engulfing Bearish (Força Baixa)');
+        }
+        if (lastPattern.includes('Doji')) {
+          // Doji é indecisão, mas se acompanhado por RSI extremo, confirma
+          if (lastRSI !== null && lastRSI < 30) {
+            bullishScore += 1;
+            reasons.push('Doji + RSI Baixo');
+          } else if (lastRSI !== null && lastRSI > 70) {
+            bearishScore += 1;
+            reasons.push('Doji + RSI Alto');
+          }
+        }
+      }
+
+      // 4. MACD - confirmação
+      if (lastMACD && lastMACD.histogram !== null) {
+        if (lastMACD.histogram > 0 && lastMACD.macd > lastMACD.signal) {
+          bullishScore += 1;
+          reasons.push('MACD Bullish');
+        } else if (lastMACD.histogram < 0 && lastMACD.macd < lastMACD.signal) {
+          bearishScore += 1;
+          reasons.push('MACD Bearish');
+        }
+      }
+
+      // 5. Análise de movimento das velas (últimas 3)
+      if (candles.length >= 3) {
+        const prev1 = candles[lastIdx - 1];
+        const prev2 = candles[lastIdx - 2];
+
+        // Sequência de altas
+        if (lastCandle.close > prev1.close && prev1.close > prev2.close) {
+          bullishScore += 1;
+          reasons.push('Sequência de Altas');
+        }
+        // Sequência de baixas
+        if (lastCandle.close < prev1.close && prev1.close < prev2.close) {
+          bearishScore += 1;
+          reasons.push('Sequência de Baixas');
+        }
+      }
+
+      // Determinar sinal baseado em score
+      let signal = 'NEUTRO';
+      let confidence = 0;
+
+      if (bullishScore >= 3) {
+        signal = 'COMPRA FORTE 🟢';
+        confidence = Math.min(100, bullishScore * 25);
+      } else if (bullishScore === 2) {
+        signal = 'COMPRA 📈';
+        confidence = Math.min(100, bullishScore * 25);
+      } else if (bearishScore >= 3) {
+        signal = 'VENDA FORTE 🔴';
+        confidence = Math.min(100, bearishScore * 25);
+      } else if (bearishScore === 2) {
+        signal = 'VENDA 📉';
+        confidence = Math.min(100, bearishScore * 25);
+      }
+
+      return {
+        signal,
+        confidence,
+        bullishScore,
+        bearishScore,
+        reasons
+      };
+    }
+
+    function displayTradeHistory(gains, losses) {
+      const historyDiv = document.getElementById('tradeHistory');
+      const totalTrades = tradeHistory.length;
+      const winRate = totalTrades > 0 ? Math.round((gains / totalTrades) * 100) : 0;
+
+      let html = '';
+      if (tradeHistory.length === 0) {
+        html = '<p style="color: #999; text-align: center;">Nenhum trade simulado</p>';
+      } else {
+        html = '<table style="width: 100%; border-collapse: collapse; font-size: 12px;">';
+        html += '<tr style="border-bottom: 2px solid #ddd; font-weight: 600;">';
+        html += '<th style="text-align: left; padding: 8px; width: 25%;">Entrada</th>';
+        html += '<th style="text-align: right; padding: 8px; width: 15%;">Preço</th>';
+        html += '<th style="text-align: left; padding: 8px; width: 25%;">Saída</th>';
+        html += '<th style="text-align: right; padding: 8px; width: 15%;">Pips</th>';
+        html += '<th style="text-align: center; padding: 8px; width: 20%;">Resultado</th>';
+        html += '</tr>';
+
+        tradeHistory.forEach((trade) => {
+          html += '<tr style="border-bottom: 1px solid #eee;">';
+          html += `<td style="padding: 8px; width: 25%;">${trade.entryTime}</td>`;
+          html += `<td style="text-align: right; padding: 8px; width: 15%;">${trade.entryPrice}</td>`;
+          html += `<td style="padding: 8px; width: 25%;">${trade.exitTime}</td>`;
+          html += `<td style="text-align: right; padding: 8px; width: 15%; color: ${trade.color}; font-weight: 600;">${trade.pips > 0 ? '+' : ''}${trade.pips}</td>`;
+          html += `<td style="text-align: center; padding: 8px; width: 20%; color: ${trade.color}; font-weight: 600;">${trade.result}</td>`;
+          html += '</tr>';
+        });
+
+        html += '</table>';
+      }
+
+      historyDiv.innerHTML = html;
+
+      // Atualizar resumo
+      document.getElementById('totalTrades').textContent = totalTrades;
+      document.getElementById('totalGain').textContent = gains;
+      document.getElementById('totalLoss').textContent = losses;
+      document.getElementById('winRate').textContent = winRate + '%';
+    }
+
+    function drawRSIChart(candles, rsiValues) {
+      const canvas = document.getElementById('rsiChart');
+      canvas.width = 1000;
+      canvas.height = 150;
+      const ctx = canvas.getContext('2d');
+      const padding = 40;
+
+      // Background
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Zonas
+      ctx.fillStyle = 'rgba(212, 47, 47, 0.1)';
+      ctx.fillRect(padding, 0, canvas.width - 2 * padding, (canvas.height - 2 * padding) * 0.3); // Overbought
+      ctx.fillStyle = 'rgba(0, 200, 83, 0.1)';
+      ctx.fillRect(padding, (canvas.height - 2 * padding) * 0.7 + padding, canvas.width - 2 * padding, (canvas.height - 2 * padding) * 0.3); // Oversold
+
+      // Linhas
+      ctx.strokeStyle = '#e0e0e0';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding, padding);
+      ctx.lineTo(padding, canvas.height - padding);
+      ctx.stroke();
+
+      // RSI Line
+      ctx.strokeStyle = '#667eea';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < rsiValues.length; i++) {
+        if (rsiValues[i] === null) continue;
+        const x = padding + (i / rsiValues.length) * (canvas.width - 2 * padding);
+        const y = canvas.height - padding - (rsiValues[i] / 100) * (canvas.height - 2 * padding);
+        if (i === 0 || rsiValues[i - 1] === null) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Labels
+      ctx.fillStyle = '#999';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('100', padding - 5, padding);
+      ctx.fillText('50', padding - 5, canvas.height / 2);
+      ctx.fillText('0', padding - 5, canvas.height - padding);
+    }
+
+    function drawMACDChart(candles, macdValues) {
+      const canvas = document.getElementById('macdChart');
+      canvas.width = 1000;
+      canvas.height = 150;
+      const ctx = canvas.getContext('2d');
+      const padding = 40;
+
+      // Background
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Zero line
+      ctx.strokeStyle = '#e0e0e0';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding, canvas.height / 2);
+      ctx.lineTo(canvas.width - padding, canvas.height / 2);
+      ctx.stroke();
+
+      const centerY = canvas.height / 2;
+      const maxMACD = Math.max(...macdValues.filter(m => m && m.macd).map(m => Math.abs(m.macd))) || 1;
+
+      // Histogram
+      for (let i = 0; i < macdValues.length; i++) {
+        if (!macdValues[i] || macdValues[i].histogram === null) continue;
+        const x = padding + (i / macdValues.length) * (canvas.width - 2 * padding);
+        const histHeight = (macdValues[i].histogram / maxMACD) * (canvas.height / 2 - padding);
+        ctx.fillStyle = macdValues[i].histogram > 0 ? '#00c853' : '#d32f2f';
+        ctx.fillRect(x - 1, centerY - histHeight, 2, histHeight);
+      }
+
+      // MACD Line
+      ctx.strokeStyle = '#667eea';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (let i = 0; i < macdValues.length; i++) {
+        if (!macdValues[i] || macdValues[i].macd === null) continue;
+        const x = padding + (i / macdValues.length) * (canvas.width - 2 * padding);
+        const y = centerY - (macdValues[i].macd / maxMACD) * (canvas.height / 2 - padding);
+        if (i === 0 || !macdValues[i - 1] || macdValues[i - 1].macd === null) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Signal Line
+      ctx.strokeStyle = '#ff6f00';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i < macdValues.length; i++) {
+        if (!macdValues[i] || macdValues[i].signal === null) continue;
+        const x = padding + (i / macdValues.length) * (canvas.width - 2 * padding);
+        const y = centerY - (macdValues[i].signal / maxMACD) * (canvas.height / 2 - padding);
+        if (i === 0 || !macdValues[i - 1] || macdValues[i - 1].signal === null) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    function toggleAlerts() {
+      alertsEnabled = !alertsEnabled;
+      const btn = document.getElementById('btnToggleAlerts');
+      btn.style.background = alertsEnabled ? '#4caf50' : '#2196f3';
+      btn.textContent = alertsEnabled ? '🔔 Alertas ATIVO' : '🔔 Ativar Alertas';
+    }
+
+    function exportAnalysis() {
+      if (analysisHistory.length === 0) {
+        alert('Nenhuma análise para exportar');
+        return;
+      }
+
+      let csv = 'Hora,Status,Confiança,Bullish,Bearish,RSI,Padrões\n';
+      analysisHistory.forEach(analysis => {
+        csv += `${analysis.time},${analysis.status},${analysis.confidence}%,${analysis.bullish},${analysis.bearish},${analysis.rsi},${analysis.patterns}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `analise-eurusd-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+    }
+
+    function updateZoomLevel() {
+      document.getElementById('chartZoomLevel').textContent = Math.round(chartZoom * 100) + '%';
+    }
+
+    async function loadTradeHistory() {
+      try {
+        const response = await fetch('/api/bot/history?limit=1000');
+        const data = await response.json();
+
+        if (data.status === 'success' && data.trades) {
+          tradeHistory = data.trades.map(t => ({
+            id: t.id,
+            pair: t.pair,
+            signal: t.signal,
+            action: t.action,
+            amount: t.amount,
+            entry_price: t.entry_price,
+            exit_price: t.exit_price,
+            entry_time: t.entry_time,
+            exit_time: t.exit_time,
+            status: t.status,
+            result: t.result,
+            profit_loss: t.profit_loss,
+            profit_loss_percent: t.profit_loss_percent
+          }));
+
+          updateTradeDisplay();
+        }
+      } catch (err) {
+        console.error('Erro ao carregar histórico de trades:', err);
+      }
+    }
+
+    function updateTradeDisplay() {
+      const historyDiv = document.getElementById('tradeHistory');
+      const totalTrades = tradeHistory.length;
+
+      document.getElementById('totalTrades').textContent = totalTrades;
+
+      if (tradeHistory.length === 0) {
+        historyDiv.innerHTML = '<p style="color: #999; text-align: center;">Nenhum trade simulado ainda</p>';
+        return;
+      }
+
+      let wins = 0, losses = 0;
+      let totalGain = 0, totalLoss = 0;
+
+      tradeHistory.forEach((trade) => {
+        if (trade.result === 'sucesso') {
+          wins++;
+          totalGain += trade.profit_loss || 0;
+        } else if (trade.result === 'erro') {
+          losses++;
+          totalLoss += trade.profit_loss || 0;
+        }
+      });
+
+      document.getElementById('totalGain').textContent = totalGain.toFixed(2);
+      document.getElementById('totalLoss').textContent = totalLoss.toFixed(2);
+      document.getElementById('winRate').textContent = ((wins / totalTrades) * 100).toFixed(1) + '%';
+
+      historyDiv.innerHTML = tradeHistory.map(trade => {
+        const timeStr = new Date(trade.entry_time).toLocaleString('pt-BR');
+        const resultColor = trade.result === 'sucesso' ? '#00c853' : '#d32f2f';
+        const resultText = trade.result === 'sucesso' ? '✅ Ganho' : '❌ Perda';
+        return `
+          <div style="background: white; border-left: 4px solid ${resultColor}; padding: 10px; margin-bottom: 10px; border-radius: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>${trade.signal}</strong> - ${trade.pair} (${trade.amount})
+                <br><small style="color: #999;">${timeStr}</small>
+              </div>
+              <div style="text-align: right;">
+                <span style="color: ${resultColor}; font-weight: bold;">${resultText}</span>
+                <br><span style="color: ${resultColor};">R$ ${(trade.profit_loss || 0).toFixed(2)} (${(trade.profit_loss_percent || 0).toFixed(2)}%)</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadChart() {
+      try {
+        const response = await fetch(`/api/chart/candles?symbol=${SYMBOL}&limit=60&type=${CHART_TYPE}&timeframe=1m`);
+        const data = await response.json();
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        if (data.candles && data.candles.length > 0) {
+          currentCandles = data.candles;
+          chartZoom = 1;
+          updateZoomLevel();
+          drawCandleChart(currentCandles);
+          performTechnicalAnalysis(currentCandles);
+        } else {
+          document.getElementById('chartInner').innerHTML = '❌ Erro ao carregar dados: ' + (data.error || 'Dados não disponíveis');
+        }
+      } catch (err) {
+        console.error('Erro ao carregar gráfico:', err);
+        document.getElementById('chartInner').innerHTML = '❌ Erro: ' + err.message;
+      }
+    }
+
+    function drawCandleChart(candles) {
+      const inner = document.getElementById('chartInner');
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'relative';
+      wrapper.style.display = 'inline-block';
+
+      chartCanvas = document.createElement('canvas');
+      const baseWidth = 80; // Aumentado para 80 (melhor legibilidade)
+      const candleWidth = baseWidth * chartZoom;
+      const width = 150 + candles.length * candleWidth;
+      const height = 600;
+
+      chartCanvas.width = width;
+      chartCanvas.height = height;
+      chartCanvas.style.width = width + 'px';
+      chartCanvas.style.height = height + 'px';
+      chartCanvas.style.display = 'block';
+
+      const ctx = chartCanvas.getContext('2d');
+      const padding = 70;
+
+      // Calcular Bollinger Bands para visualização
+      const bb = TechnicalIndicators.bollingerBands(candles, 20, 2);
+
+      // Encontrar min/max (incluindo BB)
+      let minPrice = Math.min(...candles.map(c => c.low));
+      let maxPrice = Math.max(...candles.map(c => c.high));
+
+      // Incluir BB no range
+      for (let band of bb) {
+        if (band.lower !== null) minPrice = Math.min(minPrice, band.lower);
+        if (band.upper !== null) maxPrice = Math.max(maxPrice, band.upper);
+      }
+
+      const range = maxPrice - minPrice;
+      const marginPrice = range * 0.15;
+      minPrice -= marginPrice;
+      maxPrice += marginPrice;
+      const adjustedRange = maxPrice - minPrice;
+
+      // Background
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, width, height);
+
+      // Grid lines
+      ctx.strokeStyle = '#e0e0e0';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 10; i++) {
+        const y = padding + (height - 2 * padding) * (i / 10);
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(width - padding, y);
+        ctx.stroke();
+
+        const price = maxPrice - (adjustedRange * (i / 10));
+        ctx.fillStyle = '#999';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(price.toFixed(4), padding - 10, y + 4);
+      }
+
+      // Draw Bollinger Bands
+      ctx.strokeStyle = '#ccc';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+
+      // Upper Band
+      ctx.beginPath();
+      for (let i = 0; i < candles.length; i++) {
+        if (bb[i].upper === null) continue;
+        const x = padding + i * candleWidth + candleWidth / 2;
+        const y = padding + (maxPrice - bb[i].upper) / adjustedRange * (height - 2 * padding);
+        if (i === 0 || bb[i - 1].upper === null) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Middle Band (SMA)
+      ctx.strokeStyle = '#999';
+      ctx.beginPath();
+      for (let i = 0; i < candles.length; i++) {
+        if (bb[i].middle === null) continue;
+        const x = padding + i * candleWidth + candleWidth / 2;
+        const y = padding + (maxPrice - bb[i].middle) / adjustedRange * (height - 2 * padding);
+        if (i === 0 || bb[i - 1].middle === null) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Lower Band
+      ctx.strokeStyle = '#ccc';
+      ctx.beginPath();
+      for (let i = 0; i < candles.length; i++) {
+        if (bb[i].lower === null) continue;
+        const x = padding + i * candleWidth + candleWidth / 2;
+        const y = padding + (maxPrice - bb[i].lower) / adjustedRange * (height - 2 * padding);
+        if (i === 0 || bb[i - 1].lower === null) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      ctx.setLineDash([]); // Resetar padrão de linha
+
+      // Draw candles
+      candles.forEach((candle, index) => {
+        const x = padding + index * candleWidth + candleWidth / 2;
+        const yOpen = padding + (maxPrice - candle.open) / adjustedRange * (height - 2 * padding);
+        const yClose = padding + (maxPrice - candle.close) / adjustedRange * (height - 2 * padding);
+        const yHigh = padding + (maxPrice - candle.high) / adjustedRange * (height - 2 * padding);
+        const yLow = padding + (maxPrice - candle.low) / adjustedRange * (height - 2 * padding);
+
+        const isUp = candle.close >= candle.open;
+        ctx.strokeStyle = isUp ? '#00c853' : '#d32f2f';
+        ctx.fillStyle = isUp ? '#00c853' : '#d32f2f';
+        ctx.lineWidth = 1;
+
+        // Wick
+        ctx.beginPath();
+        ctx.moveTo(x, yHigh);
+        ctx.lineTo(x, yLow);
+        ctx.stroke();
+
+        // Body
+        const bodyY = Math.min(yOpen, yClose);
+        const bodyHeight = Math.abs(yClose - yOpen) || 2;
+        ctx.fillRect(x - candleWidth / 2 + 2, bodyY, candleWidth - 4, bodyHeight);
+
+        // Hover tooltip
+        const tolerance = candleWidth / 2 + 5;
+        const brasiilaTime = new Date((candle.time - 3 * 3600) * 1000);
+        const timeStr = brasiilaTime.toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        chartCanvas.addEventListener('mousemove', (e) => {
+          const rect = chartCanvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+
+          if (Math.abs(mouseX - x) < tolerance && mouseY > padding && mouseY < height - padding) {
+            const tooltip = `${timeStr} (Brasília)\nO: ${candle.open.toFixed(4)}\nH: ${candle.high.toFixed(4)}\nL: ${candle.low.toFixed(4)}\nC: ${candle.close.toFixed(4)}\nV: ${Math.round(candle.volume)}`;
+            console.log(tooltip);
+          }
+        });
+      });
+
+      // Draw time labels - mostrando horários em Brasília (GMT-3)
+      for (let i = 0; i < candles.length; i++) {
+        const candle = candles[i];
+        const brasiilaTime = new Date((candle.time - 3 * 3600) * 1000);
+        const minutes = brasiilaTime.getMinutes();
+        const hours = brasiilaTime.getHours();
+
+        // Mostrar horário a cada 10 minutos para melhor legibilidade
+        if ((i % 10 === 0) || (minutes % 10 === 0 && i % 2 === 0)) {
+          const x = padding + i * candleWidth + candleWidth / 2;
+          const timeStr = brasiilaTime.toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+          // Estilo melhorado para horários
+          ctx.fillStyle = '#333';
+          ctx.font = 'bold 16px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(timeStr, x, height - padding + 20);
+
+          // Linha separadora sutil
+          ctx.strokeStyle = '#ddd';
+          ctx.beginPath();
+          ctx.moveTo(x, padding);
+          ctx.lineTo(x, height - padding - 5);
+          ctx.stroke();
+        }
+      }
+
+      inner.innerHTML = '';
+      wrapper.appendChild(chartCanvas);
+      inner.appendChild(wrapper);
+    }
+
+    // Load on startup
+    loadTradeHistory();
+    loadChart();
+
+    // Auto-refresh a cada 1 minuto (60 segundos) para M1
+    setInterval(loadTradeHistory, 30000); // Atualizar histórico a cada 30s
+    setInterval(loadChart, 60000);
+  </script>
+</body>
+</html>

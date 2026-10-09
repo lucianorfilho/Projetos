@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+build/
+dist/
+*.spec.bak
+tools/private_key.pem
+app/dbwatch.sqlite3
+*.log
