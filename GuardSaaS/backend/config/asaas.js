@@ -47,6 +47,20 @@ async function createSubscription({ customerId, value, nextDueDate, description,
   return data;
 }
 
+// Cobrança avulsa (não-recorrente) — usada pra unificar faturas atrasadas num único boleto
+async function createPayment({ customerId, value, dueDate, description, externalReference }) {
+  const http = client();
+  const { data } = await http.post('/payments', {
+    customer: customerId,
+    billingType: 'BOLETO',
+    value,
+    dueDate,
+    description,
+    externalReference
+  });
+  return data;
+}
+
 async function cancelSubscription(subscriptionId) {
   const http = client();
   await http.delete(`/subscriptions/${subscriptionId}`);
@@ -72,11 +86,30 @@ async function getPayment(paymentId) {
   return data;
 }
 
+// Checagem leve de conectividade/credencial - usada pelo monitor de integração
+async function checkHealth() {
+  const http = client();
+  const start = Date.now();
+  try {
+    await http.get('/finance/balance');
+    return { ok: true, latencyMs: Date.now() - start };
+  } catch (err) {
+    return {
+      ok: false,
+      latencyMs: Date.now() - start,
+      status: err.response?.status,
+      error: err.response?.data?.errors?.[0]?.description || err.message,
+    };
+  }
+}
+
 module.exports = {
   findOrCreateCustomer,
   createSubscription,
+  createPayment,
   cancelSubscription,
   listPaymentsForSubscription,
   getPixQrCode,
-  getPayment
+  getPayment,
+  checkHealth
 };

@@ -20,7 +20,7 @@ function ResetPasswordForm() {
 
   useEffect(() => {
     if (!token) { setValid(false); return; }
-    api.get(`/api/password/validate/${token}`)
+    api.get(`/password/validate/${token}`)
       .then(res => setValid(res.data.valid))
       .catch(() => setValid(false));
   }, [token]);

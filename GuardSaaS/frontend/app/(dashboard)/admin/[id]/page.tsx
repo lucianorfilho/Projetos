@@ -2,9 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Mail, Phone, Building, Server, Archive, Trash2 } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Building, Server, Archive, Trash2, Receipt, Layers } from 'lucide-react';
 import api from '@/lib/api';
 import { formatDate, formatBytes, statusBg } from '@/lib/utils';
+
+const invoiceStatusLabel: Record<string, string> = {
+  awaiting_payment: 'Aguardando',
+  overdue: 'Vencida',
+  paid: 'Paga',
+  cancelled: 'Cancelada',
+};
 
 export default function ClientDetailPage() {
   const { id } = useParams();
@@ -12,11 +19,41 @@ export default function ClientDetailPage() {
   const [client, setClient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
+  const [pendingInvoices, setPendingInvoices] = useState<any[]>([]);
+  const [consolidating, setConsolidating] = useState(false);
+  const [consolidateResult, setConsolidateResult] = useState<any>(null);
+  const [consolidateError, setConsolidateError] = useState('');
+
+  async function loadInvoices() {
+    try {
+      const res = await api.get(`/admin/clients/${id}/pending-invoices`);
+      setPendingInvoices(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function consolidate() {
+    if (!confirm(`Unificar ${pendingInvoices.length} faturas pendentes numa única cobrança?`)) return;
+    setConsolidating(true);
+    setConsolidateError('');
+    setConsolidateResult(null);
+    try {
+      const res = await api.post(`/admin/clients/${id}/consolidate-invoices`);
+      setConsolidateResult(res.data);
+      await loadInvoices();
+    } catch (err: any) {
+      setConsolidateError(err.response?.data?.error || 'Erro ao unificar faturas');
+    } finally {
+      setConsolidating(false);
+    }
+  }
 
   async function load() {
     try {
-      const res = await api.get(`/api/clients/${id}`);
+      const res = await api.get(`/clients/${id}`);
       setClient(res.data);
+      loadInvoices();
     } catch (err) {
       console.error(err);
     } finally {
@@ -29,7 +66,7 @@ export default function ClientDetailPage() {
   async function approve() {
     setActing(true);
     try {
-      await api.post(`/api/clients/${id}/approve`);
+      await api.post(`/clients/${id}/approve`);
       await load();
     } finally { setActing(false); }
   }
@@ -37,7 +74,7 @@ export default function ClientDetailPage() {
   async function suspend() {
     setActing(true);
     try {
-      await api.post(`/api/clients/${id}/suspend`);
+      await api.post(`/clients/${id}/suspend`);
       await load();
     } finally { setActing(false); }
   }
@@ -45,7 +82,7 @@ export default function ClientDetailPage() {
   async function reactivate() {
     setActing(true);
     try {
-      await api.post(`/api/clients/${id}/reactivate`);
+      await api.post(`/clients/${id}/reactivate`);
       await load();
     } finally { setActing(false); }
   }
@@ -54,7 +91,7 @@ export default function ClientDetailPage() {
     if (!confirm(`Excluir permanentemente "${client.name}"? Todos os arquivos no armazenamento serão apagados. Esta ação não pode ser desfeita.`)) return;
     setActing(true);
     try {
-      await api.delete(`/api/clients/${id}`);
+      await api.delete(`/clients/${id}`);
       router.push('/admin');
     } finally { setActing(false); }
   }
@@ -173,6 +210,85 @@ export default function ClientDetailPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Financeiro */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+        <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+          <Receipt className="w-4 h-4 text-amber-400" />
+          Financeiro
+        </h2>
+
+        {pendingInvoices.length === 0 ? (
+          <p className="text-gray-500 text-sm">Nenhuma fatura pendente ou vencida — tudo em dia.</p>
+        ) : (
+          <>
+            <div className="space-y-2 mb-4">
+              {pendingInvoices.map((inv: any) => (
+                <div key={inv.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl">
+                  <div>
+                    <p className="text-white text-sm font-medium">{inv.plan_name}</p>
+                    <p className="text-gray-500 text-xs">Vencimento: {formatDate(inv.due_date)}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-300">
+                      R$ {parseFloat(inv.value).toFixed(2)}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      inv.status === 'overdue'
+                        ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                        : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                    }`}>
+                      {invoiceStatusLabel[inv.status] ?? inv.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {pendingInvoices.length > 1 && (
+              <div className="pt-3 border-t border-gray-800">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-400">
+                    Total pendente:{' '}
+                    <span className="text-white font-medium">
+                      R$ {pendingInvoices.reduce((s: number, i: any) => s + parseFloat(i.value), 0).toFixed(2)}
+                    </span>
+                    {' '}({pendingInvoices.length} faturas)
+                  </p>
+                  <button
+                    onClick={consolidate}
+                    disabled={consolidating}
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-xl text-sm transition"
+                  >
+                    <Layers className="w-4 h-4" />
+                    {consolidating ? 'Unificando...' : 'Unificar em uma cobrança'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Cancela as {pendingInvoices.length} faturas atuais e gera um boleto/Pix único com o
+                  valor somado, vencendo em 5 dias.
+                </p>
+              </div>
+            )}
+
+            {consolidateError && (
+              <p className="text-red-400 text-sm mt-3">{consolidateError}</p>
+            )}
+            {consolidateResult && (
+              <div className="mt-3 p-3 bg-green-500/10 border border-green-500/20 rounded-xl text-sm">
+                <p className="text-green-400 font-medium mb-1">
+                  Cobrança única gerada: R$ {consolidateResult.total.toFixed(2)} (vence em {formatDate(consolidateResult.due_date)})
+                </p>
+                {consolidateResult.boleto_url && (
+                  <a href={consolidateResult.boleto_url} target="_blank" className="text-blue-400 hover:underline">
+                    Abrir boleto/link de pagamento →
+                  </a>
+                )}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Servidores */}

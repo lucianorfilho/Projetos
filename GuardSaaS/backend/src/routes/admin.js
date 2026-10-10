@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { execute } = require('../config/database');
 const auth = require('../middleware/auth');
+const { getClientPlan, getClientUsage, listObjects } = require('../services/storageQuota');
+const { findOrCreateCustomer, createPayment, getPixQrCode } = require('../../config/asaas');
 
 const adminAuth = (req, res, next) => {
   if (!req.user || req.user.role !== 'admin') {
@@ -232,16 +234,24 @@ router.get('/system-health', auth, adminAuth, async (req, res) => {
     );
 
     const data = health[0];
-    const status = data.overdue_payments === 0 ? 'healthy' : 'warning';
+    const { checkHealth } = require('../../config/asaas');
+    const asaas = await checkHealth();
+
+    const status = !asaas.ok ? 'down' : data.overdue_payments === 0 ? 'healthy' : 'warning';
 
     res.json({
       status,
+      asaas_reachable: asaas.ok,
+      asaas_latency_ms: asaas.latencyMs,
+      asaas_error: asaas.ok ? null : asaas.error,
       overdue_payments: data.overdue_payments,
       total_pending: data.total_pending,
       processed_24h: data.processed_24h,
       webhooks_1h: data.webhooks_1h,
       last_webhook: data.last_webhook,
-      recommendation: data.overdue_payments > 0
+      recommendation: !asaas.ok
+        ? 'A API do Asaas não respondeu. Verifique a chave de API e o status do Asaas.'
+        : data.overdue_payments > 0
         ? 'Há pagamentos não sincronizados. Verifique Asaas e webhooks.'
         : 'Sistema operacional normalmente'
     });
@@ -265,6 +275,149 @@ router.put('/alerts/:alertId/mark-read', auth, adminAuth, async (req, res) => {
   } catch (err) {
     console.error('Erro ao marcar alerta:', err.message);
     res.status(500).json({ error: 'Erro ao atualizar alerta' });
+  }
+});
+
+// [ADMIN] Visão de armazenamento por cliente - usado na tela de Backups
+router.get('/backups-overview', auth, adminAuth, async (req, res) => {
+  try {
+    const { rows: clients } = await execute(
+      `SELECT id, name, email, company, status FROM dbguard_users WHERE role = 'client' ORDER BY name`
+    );
+
+    const overview = await Promise.all(
+      clients.map(async (c) => {
+        const [plan, usage, files] = await Promise.all([
+          getClientPlan(c.id),
+          getClientUsage(c.id),
+          listObjects(c.id),
+        ]);
+        const limitMB = (plan.storage_limit_gb || 0) * 1024;
+        return {
+          id: c.id,
+          name: c.name,
+          email: c.email,
+          company: c.company,
+          status: c.status,
+          plan_name: plan.name,
+          storage_limit_gb: plan.storage_limit_gb,
+          used_mb: usage.totalMB,
+          used_pct: limitMB > 0 ? Math.min((usage.totalMB / limitMB) * 100, 100) : 0,
+          file_count: usage.fileCount,
+          last_files: files.slice(0, 5).map((f) => ({
+            id: f.id,
+            file_name: f.file_name,
+            file_size_mb: f.file_size_mb,
+            created_at: f.created_at,
+          })),
+        };
+      })
+    );
+
+    res.json(overview);
+  } catch (err) {
+    console.error('Erro ao montar visão de backups:', err.message);
+    res.status(500).json({ error: 'Erro ao buscar visão de backups' });
+  }
+});
+
+// [ADMIN] Faturas pendentes/vencidas de um cliente específico (pra tela de unificação)
+router.get('/clients/:id/pending-invoices', auth, adminAuth, async (req, res) => {
+  try {
+    const { rows } = await execute(
+      `SELECT id, plan_name, value, status, due_date, created_at
+       FROM dbguard_invoices
+       WHERE user_id = ? AND status IN ('awaiting_payment', 'overdue')
+       ORDER BY due_date ASC`,
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro ao buscar faturas pendentes:', err.message);
+    res.status(500).json({ error: 'Erro ao buscar faturas' });
+  }
+});
+
+// [ADMIN] Unifica todas as faturas em aberto/vencidas de um cliente numa cobrança só
+router.post('/clients/:id/consolidate-invoices', auth, adminAuth, async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const { rows: userRows } = await execute(
+      'SELECT id, name, email, phone, cpf_cnpj, company, asaas_customer_id FROM dbguard_users WHERE id = ? AND role = ?',
+      [userId, 'client']
+    );
+    if (!userRows.length) return res.status(404).json({ error: 'Cliente não encontrado' });
+    const user = userRows[0];
+
+    const { rows: pending } = await execute(
+      `SELECT id, plan_id, plan_name, value, subscription_id
+       FROM dbguard_invoices WHERE user_id = ? AND status IN ('awaiting_payment', 'overdue')`,
+      [userId]
+    );
+    if (!pending.length) {
+      return res.status(400).json({ error: 'Esse cliente não tem faturas pendentes pra unificar' });
+    }
+    if (pending.length === 1) {
+      return res.status(400).json({ error: 'Só existe 1 fatura pendente, não há o que unificar' });
+    }
+
+    const total = pending.reduce((sum, inv) => sum + parseFloat(inv.value), 0);
+    const latest = pending[pending.length - 1];
+
+    let customerId = user.asaas_customer_id;
+    if (!customerId) {
+      customerId = await findOrCreateCustomer({
+        userId: user.id, name: user.name, email: user.email,
+        cpfCnpj: user.cpf_cnpj, phone: user.phone,
+      });
+      await execute('UPDATE dbguard_users SET asaas_customer_id = ? WHERE id = ?', [customerId, user.id]);
+    }
+
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 5);
+    const dueDateStr = dueDate.toISOString().slice(0, 10);
+
+    const payment = await createPayment({
+      customerId,
+      value: total,
+      dueDate: dueDateStr,
+      description: `DBVault - Unificação de ${pending.length} faturas pendentes`,
+      externalReference: String(user.id),
+    });
+
+    const pix = await getPixQrCode(payment.id).catch(() => null);
+
+    await execute(
+      `INSERT INTO dbguard_invoices
+         (user_id, subscription_id, plan_id, plan_name, asaas_payment_id, value, status, boleto_url, pix_payload, due_date)
+       VALUES (?, ?, ?, ?, ?, ?, 'awaiting_payment', ?, ?, ?)`,
+      [user.id, latest.subscription_id, latest.plan_id, latest.plan_name, payment.id, total,
+       payment.invoiceUrl || payment.bankSlipUrl, pix?.payload || null, dueDateStr]
+    );
+
+    await execute(
+      `UPDATE dbguard_invoices SET status = 'cancelled' WHERE id IN (${pending.map(() => '?').join(',')})`,
+      pending.map((p) => p.id)
+    );
+
+    await execute(
+      `INSERT INTO dbguard_audit_logs (user_id, event_type, description, metadata)
+       VALUES (?, 'invoices_consolidated', ?, ?)`,
+      [req.user.id, `Unificou ${pending.length} faturas do cliente ${user.name} numa cobrança de R$ ${total.toFixed(2)}`,
+       JSON.stringify({ target_user_id: user.id, consolidated_invoice_ids: pending.map((p) => p.id), new_payment_id: payment.id, total })]
+    );
+
+    res.json({
+      message: 'Faturas unificadas com sucesso',
+      total,
+      boleto_url: payment.invoiceUrl || payment.bankSlipUrl,
+      pix_payload: pix?.payload || null,
+      due_date: dueDateStr,
+      consolidated_count: pending.length,
+    });
+  } catch (err) {
+    console.error('Erro ao unificar faturas:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Erro ao unificar faturas', detail: err.response?.data?.errors?.[0]?.description });
   }
 });
 

@@ -97,7 +97,7 @@ export default function ServersPage() {
     setSaving(true);
     setError('');
     try {
-      await api.put(`/api/servers/${editServer.id}`, form);
+      await api.put(`/servers/${editServer.id}`, form);
       closeEdit();
       await load();
     } catch (err: any) {
@@ -110,7 +110,7 @@ export default function ServersPage() {
   async function handleDelete(id: number) {
     if (!confirm('Remover este servidor? Esta aÃ§Ã£o nÃ£o pode ser desfeita.')) return;
     try {
-      await api.delete(`/api/servers/${id}`);
+      await api.delete(`/servers/${id}`);
       await load();
     } catch (err) { console.error(err); }
   }

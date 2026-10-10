@@ -142,8 +142,27 @@ cron.schedule('0 0 * * *', async () => {
 // Sincronizar pagamentos com Asaas — roda a cada 5 minutos
 cron.schedule('*/5 * * * *', async () => {
   try {
-    const { getPayment } = require('../config/asaas');
+    const { getPayment, checkHealth } = require('../config/asaas');
     const { notifyPaymentConfirmed } = require('./config/email');
+
+    // Checagem de saúde da integração Asaas - alerta (sem spam) se a API não responder
+    const health = await checkHealth();
+    if (!health.ok) {
+      console.error(`🚨 Integração Asaas fora do ar: ${health.error}`);
+      const { rows: recentAlert } = await execute(
+        `SELECT id FROM dbguard_alerts
+         WHERE type = 'asaas_integration_down' AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)
+         LIMIT 1`
+      );
+      if (!recentAlert.length) {
+        await execute(
+          `INSERT INTO dbguard_alerts (type, severity, message)
+           VALUES ('asaas_integration_down', 'critical', ?)`,
+          [`🚨 Integração com o Asaas está fora do ar: ${health.error}. Pagamentos não serão sincronizados até normalizar.`]
+        ).catch((e) => console.error('Erro ao registrar alerta de Asaas:', e.message));
+      }
+      return; // sem Asaas respondendo, não adianta tentar sincronizar faturas
+    }
 
     console.log('💳 Sincronizando pagamentos com Asaas...');
 

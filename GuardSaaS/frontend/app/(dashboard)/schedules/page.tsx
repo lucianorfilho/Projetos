@@ -105,7 +105,7 @@ export default function SchedulesPage() {
     setSaving(true);
     setError('');
     try {
-      await api.put(`/api/schedules/${editItem.id}`, {
+      await api.put(`/schedules/${editItem.id}`, {
         ...form,
         hour:          parseInt(form.hour),
         minute:        parseInt(form.minute),
@@ -124,7 +124,7 @@ export default function SchedulesPage() {
 
   async function handleToggle(id: number) {
     try {
-      await api.patch(`/api/schedules/${id}/toggle`);
+      await api.patch(`/schedules/${id}/toggle`);
       await load();
     } catch (err) { console.error(err); }
   }
@@ -132,7 +132,7 @@ export default function SchedulesPage() {
   async function handleDelete(id: number) {
     if (!confirm('Remover este agendamento?')) return;
     try {
-      await api.delete(`/api/schedules/${id}`);
+      await api.delete(`/schedules/${id}`);
       await load();
     } catch (err) { console.error(err); }
   }

@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useState } from 'react';
-import { Users, RefreshCw, CheckCircle, XCircle, Clock, ChevronRight, Trash2 } from 'lucide-react';
+import { Users, RefreshCw, CheckCircle, XCircle, Clock, ChevronRight, Trash2, Zap, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { formatDate } from '@/lib/utils';
@@ -12,6 +12,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [acting, setActing] = useState<number | null>(null);
+  const [health, setHealth] = useState<any>(null);
+  const [healthLoading, setHealthLoading] = useState(true);
 
   async function load() {
     setLoading(true);
@@ -25,13 +27,30 @@ export default function AdminPage() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  async function loadHealth() {
+    setHealthLoading(true);
+    try {
+      const res = await api.get('/admin/system-health');
+      setHealth(res.data);
+    } catch (err) {
+      setHealth({ status: 'down', asaas_reachable: false, asaas_error: 'Não foi possível consultar o status' });
+    } finally {
+      setHealthLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+    loadHealth();
+    const interval = setInterval(loadHealth, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   async function approve(e: React.MouseEvent, id: number) {
     e.stopPropagation();
     setActing(id);
     try {
-      await api.post(`/api/clients/${id}/approve`);
+      await api.post(`/clients/${id}/approve`);
       await load();
     } finally { setActing(null); }
   }
@@ -40,7 +59,7 @@ export default function AdminPage() {
     e.stopPropagation();
     setActing(id);
     try {
-      await api.post(`/api/clients/${id}/suspend`);
+      await api.post(`/clients/${id}/suspend`);
       await load();
     } finally { setActing(null); }
   }
@@ -49,7 +68,7 @@ export default function AdminPage() {
     e.stopPropagation();
     setActing(id);
     try {
-      await api.post(`/api/clients/${id}/reactivate`);
+      await api.post(`/clients/${id}/reactivate`);
       await load();
     } finally { setActing(null); }
   }
@@ -59,7 +78,7 @@ export default function AdminPage() {
     if (!confirm(`Excluir permanentemente "${name}"? Todos os arquivos no armazenamento serÃ£o apagados. Esta aÃ§Ã£o nÃ£o pode ser desfeita.`)) return;
     setActing(id);
     try {
-      await api.delete(`/api/clients/${id}`);
+      await api.delete(`/clients/${id}`);
       await load();
     } finally { setActing(null); }
   }
@@ -81,6 +100,35 @@ export default function AdminPage() {
           Atualizar
         </button>
       </div>
+
+      {!healthLoading && health && (
+        <div className={`rounded-2xl p-4 flex items-center gap-3 border ${
+          health.asaas_reachable
+            ? 'bg-green-500/5 border-green-500/20'
+            : 'bg-red-500/10 border-red-500/30'
+        }`}>
+          {health.asaas_reachable ? (
+            <Zap className="w-5 h-5 text-green-400 flex-shrink-0" />
+          ) : (
+            <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 animate-pulse" />
+          )}
+          <div className="flex-1 min-w-0">
+            <p className={`text-sm font-medium ${health.asaas_reachable ? 'text-green-400' : 'text-red-400'}`}>
+              Integração Asaas {health.asaas_reachable ? 'OK' : 'fora do ar'}
+            </p>
+            <p className="text-xs text-gray-500">
+              {health.asaas_reachable
+                ? `Respondendo normalmente (${health.asaas_latency_ms}ms) · ${health.total_pending} fatura(s) aguardando`
+                : health.asaas_error}
+            </p>
+          </div>
+          {health.last_webhook && (
+            <p className="text-xs text-gray-500 flex-shrink-0 hidden sm:block">
+              Último webhook: {formatDate(health.last_webhook)}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-gray-900 border border-yellow-500/20 rounded-2xl p-5">

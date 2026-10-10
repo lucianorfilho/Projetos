@@ -1,21 +1,47 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
-import { Archive, RefreshCw } from 'lucide-react';
+import { Archive, RefreshCw, ChevronDown, File } from 'lucide-react';
 import api from '@/lib/api';
-import { BackupJob } from '@/types';
-import { formatBytes, formatDate, statusBg } from '@/lib/utils';
+import { formatBytes, formatDate } from '@/lib/utils';
+
+interface LastFile {
+  id: number;
+  file_name: string;
+  file_size_mb: number;
+  created_at: string;
+}
+
+interface ClientOverview {
+  id: number;
+  name: string;
+  email: string;
+  company: string | null;
+  status: string;
+  plan_name: string;
+  storage_limit_gb: number;
+  used_mb: number;
+  used_pct: number;
+  file_count: number;
+  last_files: LastFile[];
+}
+
+function barColor(pct: number) {
+  if (pct >= 90) return 'bg-red-500';
+  if (pct >= 70) return 'bg-yellow-500';
+  return 'bg-blue-500';
+}
 
 export default function BackupsPage() {
-  const [jobs, setJobs] = useState<BackupJob[]>([]);
+  const [clients, setClients] = useState<ClientOverview[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   async function load() {
     setLoading(true);
     try {
-      const res = await api.get('/backups');
-      setJobs(res.data);
+      const res = await api.get('/admin/backups-overview');
+      setClients(res.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -25,24 +51,12 @@ export default function BackupsPage() {
 
   useEffect(() => { load(); }, []);
 
-  const filtered = filter === 'all' ? jobs : jobs.filter(j => j.status?.toLowerCase() === filter);
-
-  const filters = [
-    { key: 'all',     label: 'Todos' },
-    { key: 'success', label: 'Sucesso' },
-    { key: 'failed',  label: 'Falha' },
-    { key: 'running', label: 'Executando' },
-    { key: 'pending', label: 'Pendente' },
-  ];
-
   return (
     <div className="space-y-6">
-
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Backups</h1>
-          <p className="text-gray-400 text-sm mt-1">HistÃ³rico completo de jobs de backup</p>
+          <p className="text-gray-400 text-sm mt-1">Armazenamento usado por cliente</p>
         </div>
         <button
           onClick={load}
@@ -53,76 +67,83 @@ export default function BackupsPage() {
         </button>
       </div>
 
-      {/* Filtros */}
-      <div className="flex gap-2 flex-wrap">
-        {filters.map(f => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
-              filter === f.key
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:text-white'
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center h-48">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : clients.length === 0 ? (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl flex flex-col items-center justify-center h-48 text-gray-500">
+          <Archive className="w-12 h-12 mb-3 opacity-30" />
+          <p className="text-sm">Nenhum cliente cadastrado</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {clients.map((c) => {
+            const isOpen = expanded === c.id;
+            return (
+              <div key={c.id} className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+                <button
+                  onClick={() => setExpanded(isOpen ? null : c.id)}
+                  className="w-full flex items-center gap-4 p-5 text-left hover:bg-gray-800/40 transition"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-white font-medium truncate">{c.name}</p>
+                      <span className="text-xs text-gray-500">{c.plan_name}</span>
+                    </div>
+                    <p className="text-gray-500 text-xs mt-0.5">{c.email}</p>
 
-      {/* Tabela */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-gray-500">
-            <Archive className="w-12 h-12 mb-3 opacity-30" />
-            <p className="text-sm">Nenhum backup encontrado</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-gray-500 border-b border-gray-800">
-                  <th className="text-left pb-3 font-medium">Job</th>
-                  <th className="text-left pb-3 font-medium">Servidor</th>
-                  <th className="text-left pb-3 font-medium">Tipo</th>
-                  <th className="text-left pb-3 font-medium">Status</th>
-                  <th className="text-left pb-3 font-medium">Tamanho</th>
-                  <th className="text-left pb-3 font-medium">InÃ­cio</th>
-                  <th className="text-left pb-3 font-medium">Fim</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-800">
-                {filtered.map((job: any) => (
-                  <tr key={job.ID} className="hover:bg-gray-800/50 transition">
-                    <td className="py-3">
-                      <p className="text-white font-medium">{job.job_name}</p>
-                      {job.file_name && (
-                        <p className="text-gray-500 text-xs mt-0.5 truncate max-w-[200px]">{job.file_name}</p>
-                      )}
-                    </td>
-                    <td className="py-3 text-gray-400">{job.server_name ?? 'â€”'}</td>
-                    <td className="py-3 text-gray-400 capitalize">{job.backup_type}</td>
-                    <td className="py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusBg(job.status?.toLowerCase())}`}>
-                        {job.status}
+                    <div className="mt-3 flex items-center gap-3">
+                      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${barColor(c.used_pct)}`}
+                          style={{ width: `${Math.max(c.used_pct, 2)}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-400 whitespace-nowrap">
+                        {formatBytes(c.used_mb)} / {c.storage_limit_gb} GB
+                        {' · '}{c.used_pct.toFixed(0)}%
                       </span>
-                    </td>
-                    <td className="py-3 text-gray-400">
-                      {job.file_size_mb ? formatBytes(job.file_size_mb) : 'â€”'}
-                    </td>
-                    <td className="py-3 text-gray-400">{formatDate(job.started_at)}</td>
-                    <td className="py-3 text-gray-400">{formatDate(job.finished_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                    </div>
+                  </div>
+                  <ChevronDown
+                    className={`w-5 h-5 text-gray-500 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {isOpen && (
+                  <div className="border-t border-gray-800 p-5 pt-4">
+                    <p className="text-xs text-gray-500 mb-3">
+                      Últimos arquivos ({c.file_count} no total)
+                    </p>
+                    {c.last_files.length === 0 ? (
+                      <p className="text-gray-500 text-sm">Nenhum arquivo enviado ainda</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {c.last_files.map((f) => (
+                          <div
+                            key={f.id}
+                            className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <File className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                              <span className="text-white text-sm truncate">{f.file_name}</span>
+                            </div>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <span className="text-gray-400 text-xs">{formatBytes(f.file_size_mb)}</span>
+                              <span className="text-gray-500 text-xs">{formatDate(f.created_at)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

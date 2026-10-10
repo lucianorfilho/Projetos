@@ -66,7 +66,7 @@ export default function StoragePage() {
         formData.append('chunk_size_mb', (chunk.size / (1024 * 1024)).toString());
 
         const startChunkTime = Date.now();
-        await api.post('/api/agent/upload/chunked', formData, {
+        await api.post('/agent/upload/chunked', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: (evt: any) => {
             const chunkProgress = evt.loaded;
@@ -131,7 +131,7 @@ export default function StoragePage() {
   async function handleDownload(id: number, fileName: string) {
     setDownloading(id);
     try {
-      const res = await api.get(`/api/storage/files/${id}/download`);
+      const res = await api.get(`/storage/files/${id}/download`);
       window.open(res.data.url, '_blank');
     } catch (err: any) {
       alert(err.response?.data?.error || 'Erro ao gerar link de download');
@@ -144,7 +144,7 @@ export default function StoragePage() {
     if (!confirm(`Remover o arquivo "${fileName}"? Esta aÃ§Ã£o nÃ£o pode ser desfeita.`)) return;
     setDeleting(id);
     try {
-      await api.delete(`/api/storage/files/${id}`);
+      await api.delete(`/storage/files/${id}`);
       await load();
     } catch (err: any) {
       alert(err.response?.data?.error || 'Erro ao remover arquivo');
