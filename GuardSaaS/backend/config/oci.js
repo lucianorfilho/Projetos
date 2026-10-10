@@ -3,7 +3,12 @@ const fs = require('fs');
 const common = require('oci-common');
 const objectstorage = require('oci-objectstorage');
 
-const PAR_BASE = 'https://objectstorage.sa-saopaulo-1.oraclecloud.com/p/Qt5KR8hUN8RssfUcAIF2Ul_dxWYE_XtnU1DTLzu6c4Mh0XU0b4t6Aikk7kwhC_GW/n/grhztes5ppus/b/dbguard-backups/o';
+// PAR (Pre-Authenticated Request) da OCI - NUNCA hardcodear aqui: esse valor
+// é uma credencial de acesso completa ao bucket. Fica só em OCI_PAR_BASE no .env.
+const PAR_BASE = process.env.OCI_PAR_BASE;
+if (!PAR_BASE) {
+  throw new Error('OCI_PAR_BASE não configurado no .env');
+}
 
 const NAMESPACE   = 'grhztes5ppus';
 const BUCKET_NAME = 'dbguard-backups';
