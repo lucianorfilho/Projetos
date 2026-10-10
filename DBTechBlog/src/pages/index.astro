@@ -4,6 +4,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
+import HeroArt from '../components/HeroArt.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 
 const posts = (await getCollection('blog'))
@@ -47,14 +48,19 @@ const products = [
 		<Header />
 		<main>
 			<section class="hero">
-				<h1>Banco de dados, monitoramento<br />e segurança, sem mistério.</h1>
-				<p>
-					Artigos, scripts e soluções reais de administração de banco de dados, monitoramento de
-					infraestrutura e segurança — e os produtos que nascem dessas soluções.
-				</p>
-				<div class="hero-ctas">
-					<a class="btn btn-primary" href="/blog">Ler o blog</a>
-					<a class="btn btn-ghost" href="/produtos">Ver produtos</a>
+				<div class="hero-text">
+					<h1>Banco de dados, monitoramento<br />e segurança, sem mistério.</h1>
+					<p>
+						Artigos, scripts e soluções reais de administração de banco de dados, monitoramento de
+						infraestrutura e segurança — e os produtos que nascem dessas soluções.
+					</p>
+					<div class="hero-ctas">
+						<a class="btn btn-primary" href="/blog">Ler o blog</a>
+						<a class="btn btn-ghost" href="/produtos">Ver produtos</a>
+					</div>
+				</div>
+				<div class="hero-art" aria-hidden="true">
+					<HeroArt />
 				</div>
 			</section>
 
@@ -102,23 +108,36 @@ const products = [
 
 <style>
 	.hero {
-		text-align: center;
+		display: flex;
+		align-items: center;
+		gap: 2em;
 		padding: 2em 0 3em;
 	}
+	.hero-text {
+		flex: 1.15;
+		min-width: 0;
+	}
+	.hero-art {
+		flex: 1;
+		max-width: 300px;
+	}
+	.hero-art svg {
+		width: 100%;
+		height: auto;
+		display: block;
+	}
 	.hero h1 {
-		font-size: 2.6rem;
+		font-size: 2.3rem;
 		letter-spacing: -0.02em;
 	}
 	.hero p {
 		color: rgb(var(--gray));
-		font-size: 1.1rem;
-		max-width: 560px;
-		margin: 1em auto 1.5em;
+		font-size: 1.05rem;
+		margin: 1em 0 1.5em;
 	}
 	.hero-ctas {
 		display: flex;
 		gap: 0.75em;
-		justify-content: center;
 	}
 	.btn {
 		display: inline-block;
@@ -229,6 +248,20 @@ const products = [
 	@media (max-width: 720px) {
 		.grid-3 {
 			grid-template-columns: 1fr;
+		}
+		.hero {
+			flex-direction: column-reverse;
+			text-align: center;
+			gap: 1em;
+		}
+		.hero-art {
+			flex: none;
+			width: 100%;
+			max-width: 220px;
+			margin: 0 auto;
+		}
+		.hero-ctas {
+			justify-content: center;
 		}
 		.hero h1 {
 			font-size: 2rem;

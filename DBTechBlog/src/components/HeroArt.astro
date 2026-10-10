@@ -1,0 +1,47 @@
+<svg
+	viewBox="0 0 480 420"
+	fill="none"
+	xmlns="http://www.w3.org/2000/svg"
+	role="img"
+	aria-label="Ilustração de banco de dados, monitoramento e segurança"
+>
+	<!-- halo suave de fundo -->
+	<circle cx="240" cy="210" r="190" fill="var(--accent)" opacity="0.06" />
+	<circle cx="240" cy="210" r="135" fill="var(--accent)" opacity="0.06" />
+
+	<!-- linhas pontilhadas conectando os elementos -->
+	<path d="M240 150 L120 260" stroke="var(--border)" stroke-width="2" stroke-dasharray="4 6" />
+	<path d="M260 160 L360 110" stroke="var(--border)" stroke-width="2" stroke-dasharray="4 6" />
+
+	<!-- banco de dados: cilindro empilhado -->
+	<g transform="translate(150,110)">
+		<ellipse cx="90" cy="18" rx="90" ry="26" fill="var(--bg-card)" stroke="var(--accent)" stroke-width="3" />
+		<path d="M0 18 L0 90 C0 105 40 118 90 118 C140 118 180 105 180 90 L180 18"
+			fill="var(--bg-card)" stroke="var(--accent)" stroke-width="3" />
+		<path d="M0 54 C0 69 40 82 90 82 C140 82 180 69 180 54"
+			fill="none" stroke="var(--accent)" stroke-width="2.5" opacity="0.55" />
+	</g>
+
+	<!-- cartão de monitoramento (gráfico) flutuando -->
+	<g transform="translate(40,230)">
+		<rect x="0" y="0" width="150" height="92" rx="14" fill="var(--bg)" stroke="var(--border)" stroke-width="2" />
+		<circle cx="22" cy="24" r="5" fill="#22c55e" />
+		<rect x="38" y="19" width="70" height="10" rx="5" fill="var(--border)" />
+		<polyline points="16,70 42,52 64,64 88,36 128,46"
+			fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+		<circle cx="128" cy="46" r="4.5" fill="var(--accent)" />
+	</g>
+
+	<!-- escudo de segurança flutuando -->
+	<g transform="translate(330,70)">
+		<path d="M40 0 L78 14 L78 46 C78 72 60 90 40 100 C20 90 2 72 2 46 L2 14 Z"
+			fill="var(--bg)" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round" />
+		<path d="M22 50 L35 63 L60 34" fill="none" stroke="var(--accent)" stroke-width="4"
+			stroke-linecap="round" stroke-linejoin="round" />
+	</g>
+
+	<!-- pontinhos decorativos -->
+	<circle cx="420" cy="330" r="5" fill="var(--accent)" opacity="0.35" />
+	<circle cx="60" cy="90" r="4" fill="var(--accent)" opacity="0.35" />
+	<circle cx="400" cy="200" r="3.5" fill="var(--accent)" opacity="0.35" />
+</svg>
