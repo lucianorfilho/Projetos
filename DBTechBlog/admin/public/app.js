@@ -1,4 +1,6 @@
-const API = '';
+// Suporta rodar tanto na raiz do domínio quanto montado num sub-caminho
+// (ex. https://dominio/admin/) sem precisar trocar cada chamada /api/...
+const API = window.location.pathname.replace(/\/$/, '');
 let token = localStorage.getItem('admin_token') || '';
 let categories = [];
 let editingSlug = null;
@@ -44,7 +46,7 @@ $('login-btn').addEventListener('click', async () => {
 	const password = $('login-password').value;
 	$('login-error').classList.add('hidden');
 	try {
-		const res = await fetch('/api/login', {
+		const res = await fetch(API + '/api/login', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ password }),

@@ -188,8 +188,9 @@ app.delete('/api/posts/:slug', auth, (req, res) => {
 // ---------- publicar (build + opcionalmente copiar pro Nginx) ----------
 
 app.post('/api/publish', auth, (req, res) => {
+	const npmBin = process.env.NPM_BIN || (process.platform === 'win32' ? 'npm.cmd' : 'npm');
 	execFile(
-		process.platform === 'win32' ? 'npm.cmd' : 'npm',
+		npmBin,
 		['run', 'build'],
 		{ cwd: BLOG_ROOT, timeout: 120000 },
 		(err, stdout, stderr) => {
