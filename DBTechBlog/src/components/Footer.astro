@@ -1,0 +1,38 @@
+---
+const today = new Date();
+---
+
+<footer>
+	<div class="links">
+		<a href="/">Início</a>
+		<a href="/blog">Blog</a>
+		<a href="/produtos">Produtos</a>
+		<a href="/about">Sobre</a>
+		<a href="https://dbvault.dbtechsolutions.com.br" target="_blank" rel="noopener">DBVault</a>
+	</div>
+	&copy; {today.getFullYear()} DBTech Solutions. Todos os direitos reservados.
+</footer>
+<style>
+	footer {
+		padding: 2em 1em 4em 1em;
+		border-top: 1px solid var(--border);
+		background: var(--bg);
+		color: rgb(var(--gray));
+		text-align: center;
+		font-size: 0.85em;
+	}
+	.links {
+		display: flex;
+		justify-content: center;
+		gap: 1.5em;
+		margin-bottom: 1em;
+		flex-wrap: wrap;
+	}
+	.links a {
+		text-decoration: none;
+		color: rgb(var(--gray));
+	}
+	.links a:hover {
+		color: rgb(var(--black));
+	}
+</style>

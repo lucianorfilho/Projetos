@@ -1,0 +1,100 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import { SITE_TITLE } from '../../consts';
+
+const products = [
+	{
+		slug: 'dbvault',
+		name: 'DBVault',
+		tag: 'Backup na nuvem',
+		desc: 'Gerenciamento de backups de banco de dados na nuvem, com planos, alertas de vencimento, cobrança recorrente e armazenamento redundante na OCI.',
+	},
+	{
+		slug: 'dbvendas',
+		name: 'DBVendas',
+		tag: 'PDV / Vendas',
+		desc: 'Sistema de vendas escalável para pequenos comércios, festas e restaurantes: ponto de venda, cozinha (KDS) e cardápio digital.',
+	},
+	{
+		slug: 'dbwatch',
+		name: 'DBWatch',
+		tag: 'Monitoramento desktop',
+		desc: 'Monitor desktop para múltiplas instâncias Oracle: status do banco, sistema operacional do servidor e verificação de backup.',
+	},
+];
+---
+
+<!doctype html>
+<html lang="pt-BR">
+	<head>
+		<BaseHead
+			title={`Produtos — ${SITE_TITLE}`}
+			description="Produtos DBTech Solutions: DBVault, DBVendas e DBWatch."
+		/>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Produtos</h1>
+			<p class="lead">Soluções que nasceram da prática de administrar, monitorar e proteger banco de dados.</p>
+
+			<div class="list">
+				{
+					products.map((p) => (
+						<a class="card" href={`/produtos/${p.slug}`}>
+							<span class="tag">{p.tag}</span>
+							<h2>{p.name}</h2>
+							<p>{p.desc}</p>
+							<span class="link">Saiba mais →</span>
+						</a>
+					))
+				}
+			</div>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.lead {
+		color: rgb(var(--gray));
+		margin-top: -0.5em;
+	}
+	.list {
+		display: grid;
+		gap: 1.1rem;
+		margin-top: 2em;
+	}
+	.card {
+		display: block;
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		padding: 1.8em;
+		text-decoration: none;
+		color: inherit;
+	}
+	.card:hover {
+		border-color: var(--accent);
+	}
+	.card .tag {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: var(--accent);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	.card h2 {
+		margin: 0.3em 0 0.4em;
+	}
+	.card p {
+		color: rgb(var(--gray));
+		margin: 0 0 0.8em;
+	}
+	.card .link {
+		font-weight: 600;
+		color: var(--accent);
+	}
+</style>

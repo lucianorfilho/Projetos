@@ -1,0 +1,99 @@
+---
+import { SITE_TITLE } from '../consts';
+import HeaderLink from './HeaderLink.astro';
+---
+
+<header>
+	<nav>
+		<h2>
+			<a href="/">
+				<span class="dot"></span>
+				{SITE_TITLE}
+			</a>
+		</h2>
+		<div class="internal-links">
+			<HeaderLink href="/">Início</HeaderLink>
+			<HeaderLink href="/blog">Blog</HeaderLink>
+			<HeaderLink href="/produtos">Produtos</HeaderLink>
+			<HeaderLink href="/about">Sobre</HeaderLink>
+		</div>
+		<div class="cta-link">
+			<a href="https://dbvault.dbtechsolutions.com.br" target="_blank" rel="noopener">
+				Acessar DBVault
+			</a>
+		</div>
+	</nav>
+</header>
+<style>
+	header {
+		margin: 0;
+		padding: 0 1em;
+		background: var(--bg);
+		border-bottom: 1px solid var(--border);
+		position: sticky;
+		top: 0;
+		z-index: 10;
+	}
+	h2 {
+		margin: 0;
+		font-size: 1em;
+	}
+	h2 a {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+		color: rgb(var(--black));
+		font-weight: 700;
+	}
+	h2 a,
+	h2 a.active {
+		text-decoration: none;
+	}
+	.dot {
+		width: 10px;
+		height: 10px;
+		border-radius: 3px;
+		background: linear-gradient(135deg, var(--accent), #22d3ee);
+		display: inline-block;
+	}
+	nav {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 0.25em 1em;
+		padding: 0.5em 0;
+	}
+	.internal-links {
+		display: flex;
+		flex-wrap: wrap;
+	}
+	nav a {
+		padding: 1em 0.5em;
+		color: rgb(var(--gray));
+		border-bottom: 4px solid transparent;
+		text-decoration: none;
+		font-weight: 500;
+	}
+	nav a.active {
+		color: rgb(var(--black));
+		text-decoration: none;
+		border-bottom-color: var(--accent);
+	}
+	.cta-link a {
+		background: var(--accent);
+		color: #fff !important;
+		padding: 0.5em 1em !important;
+		border-radius: 8px;
+		border-bottom: none !important;
+		font-size: 0.9em;
+	}
+	@media (max-width: 720px) {
+		.cta-link {
+			display: none;
+		}
+		nav a {
+			padding: 0.4em 0.5em;
+		}
+	}
+</style>

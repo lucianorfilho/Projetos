@@ -1,0 +1,46 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+---
+
+<!doctype html>
+<html lang="pt-BR">
+	<head>
+		<BaseHead
+			title={`Sobre — ${SITE_TITLE}`}
+			description="Quem está por trás da DBTech Solutions."
+		/>
+	</head>
+	<body>
+		<Header />
+		<main class="prose">
+			<h1>Sobre</h1>
+			<p>
+				A DBTech Solutions nasceu da prática do dia a dia: administrar banco de dados, monitorar
+				infraestrutura e resolver problema de segurança para clientes reais. Esse blog existe para
+				registrar essas soluções — não teoria, só o que de fato funcionou numa situação real.
+			</p>
+			<p>
+				Com o tempo, algumas dessas soluções viraram produto: o <a href="/produtos/dbvault">DBVault</a>
+				para backup, o <a href="/produtos/dbvendas">DBVendas</a> para ponto de venda e o
+				<a href="/produtos/dbwatch">DBWatch</a> para monitoramento de Oracle.
+			</p>
+			<p>
+				Se você trabalha com banco de dados, monitoramento ou segurança e topa trocar ideia, os
+				artigos do <a href="/blog">blog</a> são um bom ponto de partida.
+			</p>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.prose {
+		max-width: 720px;
+	}
+	.prose p {
+		color: rgb(var(--gray-dark));
+	}
+</style>

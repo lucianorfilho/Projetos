@@ -1,0 +1,90 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+
+interface Props {
+	name: string;
+	tag: string;
+	tagline: string;
+	description: string;
+	ctaHref?: string;
+	ctaLabel?: string;
+}
+
+const { name, tag, tagline, description, ctaHref, ctaLabel } = Astro.props;
+---
+
+<!doctype html>
+<html lang="pt-BR">
+	<head>
+		<BaseHead title={`${name} — ${SITE_TITLE}`} description={description} />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<a class="back" href="/produtos">← Produtos</a>
+			<span class="tag">{tag}</span>
+			<h1>{name}</h1>
+			<p class="tagline">{tagline}</p>
+			{
+				ctaHref && (
+					<a class="btn" href={ctaHref} target="_blank" rel="noopener">
+						{ctaLabel ?? 'Acessar'}
+					</a>
+				)
+			}
+
+			<div class="prose">
+				<slot />
+			</div>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.back {
+		font-size: 0.85rem;
+		color: rgb(var(--gray));
+		text-decoration: none;
+	}
+	.tag {
+		display: block;
+		margin-top: 1.2em;
+		font-size: 0.78rem;
+		font-weight: 700;
+		color: var(--accent);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	h1 {
+		margin: 0.3em 0 0.2em;
+	}
+	.tagline {
+		color: rgb(var(--gray));
+		font-size: 1.1rem;
+		max-width: 620px;
+	}
+	.btn {
+		display: inline-block;
+		margin: 0.5em 0 1.5em;
+		padding: 0.7em 1.4em;
+		border-radius: 8px;
+		background: var(--accent);
+		color: #fff;
+		font-weight: 600;
+		text-decoration: none;
+	}
+	.prose :global(h2) {
+		font-size: 1.4rem;
+		margin-top: 1.6em;
+	}
+	.prose :global(ul) {
+		padding-left: 1.2em;
+	}
+	.prose :global(li) {
+		margin-bottom: 0.4em;
+	}
+</style>
