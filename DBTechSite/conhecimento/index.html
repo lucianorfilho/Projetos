@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base de Conhecimento — DBTech Solutions</title>
+<meta name="description" content="Scripts, comandos e soluções de banco de dados, monitoramento e segurança.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="brand"><span class="dot"></span> DBTech Solutions</div>
+    <nav class="nav-links">
+      <a href="../index.html">Início</a>
+      <a href="../index.html#servicos">Serviços</a>
+      <a href="index.html" class="active">Base de Conhecimento</a>
+      <a href="https://dbvault.dbtechsolutions.com.br" target="_blank">DBVault</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section style="padding-top:3rem;">
+    <h1 style="color:#fff; font-size:2rem; margin-bottom:0.4rem;">Base de Conhecimento</h1>
+    <p style="color:var(--text-dim);">Scripts, comandos e soluções — tudo que resolvemos vira um artigo aqui.</p>
+  </section>
+
+  <div class="kb-toolbar">
+    <input id="kb-search" class="kb-search" type="text" placeholder="Buscar por título ou conteúdo...">
+    <button class="kb-filter active" data-cat="todos">Todos</button>
+    <button class="kb-filter" data-cat="banco">Banco de Dados</button>
+    <button class="kb-filter" data-cat="monitoramento">Monitoramento</button>
+    <button class="kb-filter" data-cat="seguranca">Segurança</button>
+    <button class="kb-filter" data-cat="deploy">Deploy</button>
+  </div>
+
+  <div id="kb-list" class="kb-list"></div>
+  <div id="kb-empty" class="kb-empty" style="display:none;">Nenhum artigo encontrado.</div>
+</main>
+
+<footer>
+  DBTech Solutions &copy; 2026 — dbtechsolutions.com.br
+</footer>
+
+<script src="data.js"></script>
+<script>
+const TAG_LABEL = { banco: 'Banco de Dados', monitoramento: 'Monitoramento', seguranca: 'Segurança', deploy: 'Deploy' };
+
+let activeCat = 'todos';
+let query = '';
+
+function render() {
+  const list = document.getElementById('kb-list');
+  const empty = document.getElementById('kb-empty');
+  const q = query.trim().toLowerCase();
+
+  const items = KB_ITEMS.filter(item => {
+    const matchesCat = activeCat === 'todos' || item.category === activeCat;
+    const matchesQuery = !q ||
+      item.title.toLowerCase().includes(q) ||
+      item.summary.toLowerCase().includes(q) ||
+      item.body.toLowerCase().includes(q);
+    return matchesCat && matchesQuery;
+  });
+
+  list.innerHTML = '';
+  empty.style.display = items.length ? 'none' : 'block';
+
+  items.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'kb-item';
+    el.innerHTML = `
+      <div class="kb-item-head">
+        <h3>${item.title}</h3>
+        <span class="kb-tag tag-${item.category}">${TAG_LABEL[item.category]}</span>
+      </div>
+      <p class="summary">${item.summary}</p>
+      <div class="body">${item.body}</div>
+    `;
+    el.addEventListener('click', () => el.classList.toggle('open'));
+    list.appendChild(el);
+  });
+}
+
+document.getElementById('kb-search').addEventListener('input', e => {
+  query = e.target.value;
+  render();
+});
+
+document.querySelectorAll('.kb-filter').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.kb-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCat = btn.dataset.cat;
+    render();
+  });
+});
+
+render();
+</script>
+
+</body>
+</html>
