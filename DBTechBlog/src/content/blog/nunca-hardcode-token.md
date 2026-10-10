@@ -2,6 +2,7 @@
 title: 'Nunca hardcodear tokens e credenciais no código-fonte'
 description: 'Um PAR (Pre-Authenticated Request) da OCI direto numa constante no .js é uma credencial completa de acesso ao bucket.'
 pubDate: 'Oct 09 2026'
+category: 'Segurança'
 ---
 
 Um **PAR (Pre-Authenticated Request)** da Oracle Cloud é uma URL que já contém a autorização

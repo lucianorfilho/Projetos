@@ -9,6 +9,8 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+
+const categories = [...new Set(posts.map((p) => p.data.category).filter(Boolean))];
 ---
 
 <!doctype html>
@@ -21,11 +23,28 @@ const posts = (await getCollection('blog')).sort(
 		<main>
 			<h1>Blog</h1>
 			<p class="lead">Tudo que resolvemos vira um artigo: comandos, scripts e explicações.</p>
-			<ul>
+
+			{
+				categories.length > 0 && (
+					<div class="filters">
+						<button class="filter active" data-cat="todos">
+							Todos
+						</button>
+						{categories.map((c) => (
+							<button class="filter" data-cat={c}>
+								{c}
+							</button>
+						))}
+					</div>
+				)
+			}
+
+			<ul id="post-list">
 				{
 					posts.map((post) => (
-						<li>
+						<li data-cat={post.data.category || ''}>
 							<a href={`/blog/${post.id}/`}>
+								{post.data.category && <span class="tag">{post.data.category}</span>}
 								<h2 class="title">{post.data.title}</h2>
 								<p class="date">
 									<FormattedDate date={post.data.pubDate} />
@@ -41,14 +60,50 @@ const posts = (await getCollection('blog')).sort(
 	</body>
 </html>
 
+<script>
+	const buttons = document.querySelectorAll<HTMLButtonElement>('.filter');
+	const items = document.querySelectorAll<HTMLLIElement>('#post-list > li');
+
+	buttons.forEach((btn) => {
+		btn.addEventListener('click', () => {
+			buttons.forEach((b) => b.classList.remove('active'));
+			btn.classList.add('active');
+			const cat = btn.dataset.cat;
+			items.forEach((li) => {
+				li.style.display = cat === 'todos' || li.dataset.cat === cat ? '' : 'none';
+			});
+		});
+	});
+</script>
+
 <style>
 	.lead {
 		color: rgb(var(--gray));
 		margin-top: -0.5em;
 	}
+	.filters {
+		display: flex;
+		gap: 0.5em;
+		flex-wrap: wrap;
+		margin: 1.5em 0 0;
+	}
+	.filter {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		color: rgb(var(--gray));
+		border-radius: 999px;
+		padding: 0.4em 1em;
+		font-size: 0.85rem;
+		cursor: pointer;
+	}
+	.filter.active {
+		background: var(--accent);
+		color: #fff;
+		border-color: var(--accent);
+	}
 	ul {
 		list-style: none;
-		margin: 2em 0 0;
+		margin: 1.5em 0 0;
 		padding: 0;
 	}
 	li {
@@ -62,6 +117,16 @@ const posts = (await getCollection('blog')).sort(
 		padding: 1.4em 0;
 		text-decoration: none;
 		color: inherit;
+	}
+	.tag {
+		display: inline-block;
+		font-size: 0.72rem;
+		font-weight: 700;
+		color: var(--accent);
+		background: rgba(59, 130, 246, 0.15);
+		padding: 0.15em 0.6em;
+		border-radius: 999px;
+		margin-bottom: 0.5em;
 	}
 	.title {
 		margin: 0 0 0.25em;

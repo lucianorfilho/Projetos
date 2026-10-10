@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — DBTech Blog</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="login-view">
+  <h1>Admin do Blog</h1>
+  <label for="login-password">Senha</label>
+  <input id="login-password" type="password" placeholder="••••••••">
+  <button class="btn" id="login-btn" style="margin-top:1.2em; width:100%;">Entrar</button>
+  <p class="msg error hidden" id="login-error"></p>
+</div>
+
+<div id="app-view" class="hidden">
+  <header>
+    <div class="brand"><span class="dot"></span> Admin — DBTech Blog</div>
+    <div>
+      <button class="btn-sm btn-ghost" id="publish-btn">Publicar (build)</button>
+      <button id="logout-btn" style="margin-left:0.6em;">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <div class="tab active" data-tab="posts">Posts</div>
+      <div class="tab" data-tab="grupos">Grupos</div>
+    </div>
+
+    <div id="tab-posts">
+      <div class="toolbar">
+        <span id="posts-count" style="color:var(--text-dim); font-size:0.85rem;"></span>
+        <button class="btn" id="new-post-btn">+ Novo post</button>
+      </div>
+      <div id="posts-list"></div>
+    </div>
+
+    <div id="tab-grupos" class="hidden">
+      <div class="toolbar">
+        <span style="color:var(--text-dim); font-size:0.85rem;">Grupos usados para organizar os posts.</span>
+      </div>
+      <div style="display:flex; gap:0.6em; margin-bottom:1.5em;">
+        <input id="new-cat-input" placeholder="Nome do novo grupo">
+        <button class="btn" id="new-cat-btn" style="white-space:nowrap;">Adicionar</button>
+      </div>
+      <div id="cats-list"></div>
+    </div>
+
+    <p class="msg" id="global-msg"></p>
+  </main>
+</div>
+
+<div id="post-modal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h2 id="post-modal-title">Novo post</h2>
+    <input type="hidden" id="post-slug">
+    <label for="post-title">Título</label>
+    <input id="post-title" placeholder="Título do post">
+    <label for="post-desc">Resumo (aparece na listagem)</label>
+    <input id="post-desc" placeholder="Uma frase resumindo o post">
+    <label for="post-cat">Grupo</label>
+    <select id="post-cat"></select>
+    <label for="post-date">Data</label>
+    <input id="post-date" type="date">
+    <label for="post-content">Conteúdo (Markdown)</label>
+    <textarea id="post-content" placeholder="Escreva o post em Markdown..."></textarea>
+    <p class="msg error hidden" id="post-modal-error"></p>
+    <div class="row-end">
+      <button class="btn-ghost btn" id="post-cancel-btn">Cancelar</button>
+      <button class="btn" id="post-save-btn">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

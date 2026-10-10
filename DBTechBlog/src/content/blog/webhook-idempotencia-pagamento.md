@@ -2,6 +2,7 @@
 title: 'Webhook de pagamento: sempre tratar reentrega (idempotência)'
 description: 'Provedores de pagamento reenviam o mesmo evento de webhook em caso de timeout — sem controle de idempotência, isso duplica cobrança ou liberação.'
 pubDate: 'Oct 09 2026'
+category: 'Banco de Dados'
 ---
 
 Provedores como Asaas reenviam um evento de webhook se não receberem uma resposta 200 a tempo — o

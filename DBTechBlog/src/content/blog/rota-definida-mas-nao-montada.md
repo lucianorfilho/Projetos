@@ -2,6 +2,7 @@
 title: 'Rota existe no código mas devolve 404: verificar se foi registrada no app principal'
 description: 'Um arquivo de rotas (ex. admin.js) correto e completo não funciona sozinho — precisa de um app.use() no index.js.'
 pubDate: 'Oct 09 2026'
+category: 'Deploy'
 ---
 
 Em apps Express organizados por módulo de rota (`routes/admin.js`, `routes/auth.js`...), é fácil

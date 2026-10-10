@@ -1,0 +1,137 @@
+:root {
+	--bg: #0a0e1a;
+	--bg-card: #121829;
+	--border: #1f2a44;
+	--text: #e5e7eb;
+	--text-dim: #9ca3af;
+	--accent: #3b82f6;
+	--red: #ef4444;
+	--green: #22c55e;
+}
+* { box-sizing: border-box; }
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+	font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+.hidden { display: none !important; }
+
+header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1em 1.5em;
+	border-bottom: 1px solid var(--border);
+}
+header .brand { display: flex; align-items: center; gap: 0.5em; font-weight: 700; }
+header .dot { width: 10px; height: 10px; border-radius: 3px; background: linear-gradient(135deg, var(--accent), #22d3ee); }
+header button { background: none; border: 1px solid var(--border); color: var(--text-dim); border-radius: 8px; padding: 0.5em 1em; cursor: pointer; }
+header button:hover { color: var(--text); border-color: var(--accent); }
+
+main { max-width: 900px; margin: 0 auto; padding: 2em 1.5em 5em; }
+
+/* login */
+#login-view {
+	max-width: 360px;
+	margin: 10vh auto;
+	padding: 2em;
+	background: var(--bg-card);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+}
+#login-view h1 { font-size: 1.3rem; margin-top: 0; }
+
+input, textarea, select {
+	width: 100%;
+	background: #0d1322;
+	border: 1px solid var(--border);
+	color: var(--text);
+	border-radius: 8px;
+	padding: 0.7em 0.9em;
+	font-size: 0.95rem;
+	font-family: inherit;
+}
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); }
+textarea { resize: vertical; min-height: 220px; font-family: 'SF Mono', Consolas, monospace; font-size: 0.85rem; }
+label { display: block; font-size: 0.82rem; color: var(--text-dim); margin: 1em 0 0.35em; }
+
+.btn {
+	display: inline-block;
+	background: var(--accent);
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	padding: 0.7em 1.3em;
+	font-weight: 600;
+	cursor: pointer;
+	font-size: 0.95rem;
+}
+.btn:hover { opacity: 0.92; }
+.btn-ghost { background: none; border: 1px solid var(--border); color: var(--text); }
+.btn-danger { background: none; border: 1px solid var(--red); color: var(--red); }
+.btn-danger:hover { background: rgba(239,68,68,0.1); }
+.btn-sm { padding: 0.4em 0.8em; font-size: 0.82rem; }
+
+.tabs { display: flex; gap: 0.5em; margin-bottom: 1.5em; border-bottom: 1px solid var(--border); }
+.tab { padding: 0.8em 0.2em; margin-right: 1.5em; color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent; font-weight: 600; }
+.tab.active { color: #fff; border-bottom-color: var(--accent); }
+
+.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em; }
+
+.post-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1em;
+	background: var(--bg-card);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	padding: 1em 1.2em;
+	margin-bottom: 0.7em;
+}
+.post-row .info h3 { margin: 0 0 0.2em; font-size: 1rem; }
+.post-row .info .meta { font-size: 0.78rem; color: var(--text-dim); }
+.post-row .actions { display: flex; gap: 0.5em; flex-shrink: 0; }
+.tag {
+	font-size: 0.7rem;
+	font-weight: 700;
+	color: var(--accent);
+	background: rgba(59,130,246,0.15);
+	padding: 0.15em 0.6em;
+	border-radius: 999px;
+	margin-right: 0.5em;
+}
+
+.cat-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: var(--bg-card);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	padding: 0.8em 1.2em;
+	margin-bottom: 0.6em;
+}
+
+.modal-backdrop {
+	position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+	display: flex; align-items: flex-start; justify-content: center;
+	padding: 4vh 1em; overflow-y: auto; z-index: 50;
+}
+.modal {
+	background: var(--bg-card);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	padding: 1.8em;
+	width: 100%;
+	max-width: 640px;
+}
+.modal h2 { margin-top: 0; }
+.modal .row-end { display: flex; justify-content: flex-end; gap: 0.6em; margin-top: 1.5em; }
+
+.msg { font-size: 0.85rem; margin-top: 0.8em; }
+.msg.error { color: var(--red); }
+.msg.ok { color: var(--green); }
+
+.empty { color: var(--text-dim); text-align: center; padding: 3em 0; }

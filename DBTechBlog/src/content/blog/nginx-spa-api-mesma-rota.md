@@ -2,6 +2,7 @@
 title: 'Nginx: evitar colisão entre rota de SPA e rota de API com o mesmo nome'
 description: 'Uma página React chamada /vendas e um endpoint de API /vendas no mesmo domínio competem pela mesma location.'
 pubDate: 'Oct 09 2026'
+category: 'Deploy'
 ---
 
 Quando o front-end React/Vite e a API Express dividem o mesmo domínio, é comum uma tela do sistema

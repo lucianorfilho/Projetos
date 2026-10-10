@@ -2,6 +2,7 @@
 title: 'Checklist pós-reboot de uma VPS com múltiplos serviços'
 description: 'Depois de queda ou reboot: o que checar, em que ordem, antes de considerar tudo normalizado.'
 pubDate: 'Oct 09 2026'
+category: 'Monitoramento'
 ---
 
 - `uptime` — confirma há quanto tempo o servidor está de pé.

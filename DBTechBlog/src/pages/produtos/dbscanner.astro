@@ -1,0 +1,23 @@
+---
+import ProductLayout from '../../layouts/ProductLayout.astro';
+---
+
+<ProductLayout
+	name="DBScanner"
+	tag="Análise de Schema"
+	tagline="Analisador de schema Oracle: varre o banco, monta um catálogo e constrói uma base de conhecimento sobre ele."
+	description="DBScanner: analisador de schema Oracle com catálogo e base de conhecimento."
+>
+	<h2>O que ele faz</h2>
+	<ul>
+		<li>Varredura completa do schema de um banco Oracle: tabelas, colunas, relacionamentos, índices.</li>
+		<li>Catálogo pesquisável, guardado localmente (SQLite), sem precisar reprocessar tudo de novo.</li>
+		<li>Base de conhecimento sobre a estrutura do banco, construída a partir do que foi escaneado.</li>
+	</ul>
+
+	<h2>Para quem é</h2>
+	<p>
+		DBAs e desenvolvedores que chegam num banco Oracle que não documentaram e precisam entender a
+		estrutura rápido, sem ficar lendo dicionário de dados na mão.
+	</p>
+</ProductLayout>

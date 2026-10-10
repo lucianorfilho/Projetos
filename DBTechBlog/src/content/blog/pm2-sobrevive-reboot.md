@@ -2,6 +2,7 @@
 title: 'Fazer processos PM2 sobreviverem a um reboot da VPS'
 description: 'pm2 start sozinho não é suficiente — sem "pm2 save", o processo some depois do próximo reboot.'
 pubDate: 'Oct 09 2026'
+category: 'Monitoramento'
 ---
 
 O PM2 só re-inicia automaticamente, depois de um reboot do servidor, os processos que estavam
