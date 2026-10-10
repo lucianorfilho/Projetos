@@ -5,18 +5,17 @@
  */
 
 :root {
-	--accent: #3b82f6;
-	--accent-dark: #93c5fd;
-	--black: 229, 231, 235;
-	--gray: 156, 163, 175;
-	--gray-light: 31, 42, 68;
-	--gray-dark: 229, 231, 235;
-	--bg: #0a0e1a;
-	--bg-card: #121829;
-	--border: #1f2a44;
+	--accent: #2563eb;
+	--accent-dark: #1d4ed8;
+	--black: 17, 24, 39;
+	--gray: 107, 114, 128;
+	--gray-light: 229, 231, 235;
+	--gray-dark: 55, 65, 81;
+	--bg: #ffffff;
+	--bg-card: #f8fafc;
+	--border: #e5e7eb;
 	--box-shadow:
-		0 2px 6px rgba(0, 0, 0, 25%), 0 8px 24px rgba(0, 0, 0, 33%),
-		0 16px 32px rgba(0, 0, 0, 33%);
+		0 1px 3px rgba(0, 0, 0, 6%), 0 4px 10px rgba(0, 0, 0, 6%);
 }
 body {
 	font-family: var(--font-atkinson);
